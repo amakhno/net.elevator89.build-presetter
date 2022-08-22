@@ -1,0 +1,25 @@
+{
+  "name": "net.elevator89.build-presetter",
+  "version": "0.1.0",
+  "displayName": "Build Presetter",
+  "description": "Allows to create multiple and flexible build presets for multiple platforms and environments, and use it in your CI pipeline",
+  "unity": "2021.1",
+  "unityRelease": "28f1",
+  "documentationUrl": "https://example.com/",
+  "changelogUrl": "https://example.com/changelog.html",
+  "licensesUrl": "https://example.com/licensing.html",
+  "dependencies": {
+    "com.unity.addressables": "1.19.9"
+  },
+  "keywords": [
+    "CI",
+    "build",
+    "preset"
+  ],
+  "author": {
+    "name": "Andrey Lemin",
+    "email": "elevator89@gmail.com",
+    "url": "https://github.com/Elevator89"
+  },
+  "type": "tool"
+}

@@ -1,0 +1,18 @@
+{
+    "name": "elevator89.build-presetter.Tests.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:907c7531019d5e94ab941d96444dc294"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
