@@ -108,7 +108,7 @@ namespace Elevator89.BuildPresetter
 			if (run)
 				buildOptions = buildOptions | BuildOptions.AutoRunPlayer;
 
-			List<string> enabledScenes = preset.EnabledScenes.ToList();
+			List<string> enabledScenes = preset.IncludedScenes.ToList();
 			string initialScene = enabledScenes[preset.InitialSceneIndex];
 			enabledScenes.RemoveAt(preset.InitialSceneIndex);
 			enabledScenes.Insert(0, initialScene);

@@ -33,16 +33,16 @@ namespace Elevator89.BuildPresetter
 		public bool IncrementalIl2CppBuild;
 
 		[SerializeField]
-		public List<string> EnabledScenes = new List<string>();
+		public List<string> IncludedScenes = new List<string>();
 
 		[SerializeField]
 		public int InitialSceneIndex;
 
 		[SerializeField]
-		public List<string> EnabledResources = new List<string>();
+		public List<string> IncludedResources = new List<string>();
 
 		[SerializeField]
-		public List<string> DisabledAssets = new List<string>();
+		public List<string> IncludedStreamingAssets = new List<string>();
 
 		[SerializeField]
 		public AndroidOptions AndroidOptions;

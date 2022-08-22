@@ -1,27 +1,61 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using NUnit.Framework;
+using UnityEditor;
+using UnityEngine;
 
 namespace Elevator89.BuildPresetter.Tests
 {
+	[TestFixture]
 	public class UtilTests
 	{
-		[Test]
-		public void HideAndRevealAssetTest()
+		const string AssetPath = "Assets/StreamingAssets/Configs/appsettings.json";
+
+		[OneTimeSetUp]
+		public void Init()
 		{
-			string asset = "StreamingAssets/Configs/appsettings.json";
+			AssetDatabase.CreateFolder("Assets", "StreamingAssets");
 
-			Util.DisableAsset(asset);
+			Directory.CreateDirectory("Assets/StreamingAssets/Configs");
+			File.WriteAllText(AssetPath, "some text");
+			AssetDatabase.Refresh();
+		}
 
-			IEnumerable<string> hiddenAssets = Util.FindAllDisabledAssets();
+		[OneTimeTearDown]
+		public void Cleanup()
+		{
+			try
+			{
+				File.Delete(AssetPath);
+				AssetDatabase.Refresh();
+				Directory.Delete("Assets/StreamingAssets/Configs");
+				AssetDatabase.Refresh();
 
-			Assert.AreEqual(1, hiddenAssets.Count());
-			Assert.True(Util.IsAssetDisabled(asset));
+				AssetDatabase.DeleteAsset("Assets/StreamingAssets");
+				AssetDatabase.Refresh();
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+			}
+		}
 
-			Util.EnableAsset(asset);
-			hiddenAssets = Util.FindAllDisabledAssets();
-			Assert.AreEqual(0, hiddenAssets.Count());
-			Assert.False(Util.IsAssetDisabled(asset));
+		[Test]
+		public void ExcludesAndIncludes()
+		{
+			Util.SetStreamingAssetIncluded(AssetPath, false);
+
+			string[] excludedAssets = Util.FindStreamingAssets(searchIncluded: false, searchExcluded: true).ToArray();
+
+			Assert.AreEqual(1, excludedAssets.Length);
+			Assert.True(Util.IsStreamingAssetIncluded(AssetPath));
+
+			Util.SetStreamingAssetIncluded(AssetPath, true);
+			excludedAssets = Util.FindStreamingAssets(searchIncluded: false, searchExcluded: true).ToArray();
+			Assert.AreEqual(0, excludedAssets.Length);
+			Assert.False(Util.IsStreamingAssetIncluded(AssetPath));
 		}
 	}
 }

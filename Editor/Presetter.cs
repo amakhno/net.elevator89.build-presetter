@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -9,38 +10,38 @@ namespace Elevator89.BuildPresetter
 	{
 		public static Preset GetCurrent()
 		{
-			Preset buildConfiguration = new Preset()
+			Preset emptyPreset = new Preset()
 			{
 				Name = "_Current",
 				BuildDirectory = null,
 				BuildFileName = null,
 			};
 
-			FillFromCurrent(buildConfiguration);
-			return buildConfiguration;
+			FillFromCurrent(emptyPreset);
+			return emptyPreset;
 		}
 
-		public static void FillFromCurrent(Preset buildConfiguration)
+		public static void FillFromCurrent(Preset preset)
 		{
 			BuildTarget buildTarget = EditorUserBuildSettings.activeBuildTarget;
 			BuildTargetGroup buildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
 
-			buildConfiguration.AppName = PlayerSettings.productName;
-			buildConfiguration.AppId = PlayerSettings.applicationIdentifier;
-			buildConfiguration.BuildTarget = buildTarget;
-			buildConfiguration.BuildTargetGroup = buildTargetGroup;
-			buildConfiguration.ScriptingImplementation = PlayerSettings.GetScriptingBackend(buildTargetGroup);
-			buildConfiguration.IncrementalIl2CppBuild = PlayerSettings.GetIncrementalIl2CppBuild(buildTargetGroup);
+			preset.AppName = PlayerSettings.productName;
+			preset.AppId = PlayerSettings.applicationIdentifier;
+			preset.BuildTarget = buildTarget;
+			preset.BuildTargetGroup = buildTargetGroup;
+			preset.ScriptingImplementation = PlayerSettings.GetScriptingBackend(buildTargetGroup);
+			preset.IncrementalIl2CppBuild = PlayerSettings.GetIncrementalIl2CppBuild(buildTargetGroup);
 
-			buildConfiguration.DefineSymbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
-			buildConfiguration.EnabledScenes = EditorBuildSettings.scenes.Select(scene => scene.path).ToList();
-			buildConfiguration.InitialSceneIndex = 0;
+			preset.DefineSymbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
+			preset.IncludedScenes = EditorBuildSettings.scenes.Select(scene => scene.path).ToList();
+			preset.InitialSceneIndex = 0;
 
-			buildConfiguration.EnabledResources = Util.FindAllResourcesFolders(includeDisabled: false).ToList();
+			preset.IncludedResources = Util.FindResourcesFolders(searchIncluded: true, searchExcluded: false).ToList();
 
-			buildConfiguration.DisabledAssets = Util.FindAllDisabledAssets().ToList();
+			preset.IncludedStreamingAssets = Util.FindStreamingAssets(searchIncluded: true, searchExcluded: false).ToList();
 
-			buildConfiguration.AndroidOptions = new AndroidOptions()
+			preset.AndroidOptions = new AndroidOptions()
 			{
 				MinAndriodSdkVersion = PlayerSettings.Android.minSdkVersion,
 				KeystoreFilePath = PlayerSettings.Android.keystoreName,
@@ -50,64 +51,51 @@ namespace Elevator89.BuildPresetter
 				AndroidBuildSystem = EditorUserBuildSettings.androidBuildSystem
 			};
 
-			buildConfiguration.DevelopmentBuild = EditorUserBuildSettings.development;
-			buildConfiguration.ServerBuild = EditorUserBuildSettings.enableHeadlessMode;
-			buildConfiguration.ConnectWithProfiler = EditorUserBuildSettings.connectProfiler;
-			buildConfiguration.UseIncrementalGC = PlayerSettings.gcIncremental;
+			preset.DevelopmentBuild = EditorUserBuildSettings.development;
+			preset.ServerBuild = EditorUserBuildSettings.enableHeadlessMode;
+			preset.ConnectWithProfiler = EditorUserBuildSettings.connectProfiler;
+			preset.UseIncrementalGC = PlayerSettings.gcIncremental;
 		}
 
-		public static void SetCurrent(Preset buildConfiguration)
+		public static void SetCurrent(Preset preset)
 		{
-			PlayerSettings.productName = buildConfiguration.AppName;
-			Texture2D icon = AssetDatabase.LoadAssetAtPath<Texture2D>(buildConfiguration.AppIconPath);
+			PlayerSettings.productName = preset.AppName;
+			Texture2D icon = AssetDatabase.LoadAssetAtPath<Texture2D>(preset.AppIconPath);
 			PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Standalone,
 				new[] { icon, icon, icon, icon, icon, icon, icon, icon });
-			PlayerSettings.applicationIdentifier = buildConfiguration.AppId;
+			PlayerSettings.applicationIdentifier = preset.AppId;
 
-			PlayerSettings.SetScriptingBackend(buildConfiguration.BuildTargetGroup, buildConfiguration.ScriptingImplementation);
-			PlayerSettings.SetIncrementalIl2CppBuild(buildConfiguration.BuildTargetGroup, buildConfiguration.IncrementalIl2CppBuild);
+			PlayerSettings.SetScriptingBackend(preset.BuildTargetGroup, preset.ScriptingImplementation);
+			PlayerSettings.SetIncrementalIl2CppBuild(preset.BuildTargetGroup, preset.IncrementalIl2CppBuild);
 
-			PlayerSettings.SetScriptingDefineSymbolsForGroup(buildConfiguration.BuildTargetGroup, buildConfiguration.DefineSymbols);
+			PlayerSettings.SetScriptingDefineSymbolsForGroup(preset.BuildTargetGroup, preset.DefineSymbols);
 
-			List<EditorBuildSettingsScene> enabledScenes = buildConfiguration.EnabledScenes.Select(path => new EditorBuildSettingsScene(path, true)).ToList();
-			EditorBuildSettingsScene initialScene = enabledScenes[buildConfiguration.InitialSceneIndex];
-			enabledScenes.RemoveAt(buildConfiguration.InitialSceneIndex);
+			List<EditorBuildSettingsScene> enabledScenes = preset.IncludedScenes.Select(path => new EditorBuildSettingsScene(path, true)).ToList();
+			EditorBuildSettingsScene initialScene = enabledScenes[preset.InitialSceneIndex];
+			enabledScenes.RemoveAt(preset.InitialSceneIndex);
 			enabledScenes.Insert(0, initialScene);
 
 			EditorBuildSettings.scenes = enabledScenes.ToArray();
 
-			foreach (string assetPath in Util.FindAllDisabledAssets().Concat(buildConfiguration.DisabledAssets))
-			{
-				if (Util.IsAssetDisabled(assetPath))
-				{
-					Util.EnableAsset(assetPath);
-				}
-				else
-				{
-					Util.DisableAsset(assetPath);
-				}
-			}
+			foreach (string resourcesFolderPath in Util.FindResourcesFolders(searchIncluded: true, searchExcluded: true))
+				Util.SetResourcesEnabled(resourcesFolderPath, preset.IncludedResources.Contains(resourcesFolderPath));
 
-			foreach (string resourcesFolderPath in Util.FindAllResourcesFolders())
-			{
-				if (buildConfiguration.EnabledResources.Contains(resourcesFolderPath))
-					Util.EnableResourcesPath(resourcesFolderPath);
-				else
-					Util.DisableResourcesPath(resourcesFolderPath);
-			}
+			foreach (string streamingAssetPath in Util.FindStreamingAssets(searchIncluded: true, searchExcluded: true))
+				Util.SetStreamingAssetIncluded(streamingAssetPath, preset.IncludedStreamingAssets.Contains(streamingAssetPath));
+
 			AssetDatabase.Refresh();
 
-			PlayerSettings.Android.minSdkVersion = buildConfiguration.AndroidOptions.MinAndriodSdkVersion;
-			PlayerSettings.Android.keystoreName = buildConfiguration.AndroidOptions.KeystoreFilePath;
-			PlayerSettings.Android.keystorePass = buildConfiguration.AndroidOptions.KeystorePassword;
-			PlayerSettings.Android.keyaliasName = buildConfiguration.AndroidOptions.KeyaliasName;
-			PlayerSettings.Android.keyaliasPass = buildConfiguration.AndroidOptions.KeyaliasPassword;
-			EditorUserBuildSettings.androidBuildSystem = buildConfiguration.AndroidOptions.AndroidBuildSystem;
+			PlayerSettings.Android.minSdkVersion = preset.AndroidOptions.MinAndriodSdkVersion;
+			PlayerSettings.Android.keystoreName = preset.AndroidOptions.KeystoreFilePath;
+			PlayerSettings.Android.keystorePass = preset.AndroidOptions.KeystorePassword;
+			PlayerSettings.Android.keyaliasName = preset.AndroidOptions.KeyaliasName;
+			PlayerSettings.Android.keyaliasPass = preset.AndroidOptions.KeyaliasPassword;
+			EditorUserBuildSettings.androidBuildSystem = preset.AndroidOptions.AndroidBuildSystem;
 
-			EditorUserBuildSettings.development = buildConfiguration.DevelopmentBuild;
-			EditorUserBuildSettings.enableHeadlessMode = buildConfiguration.ServerBuild;
+			EditorUserBuildSettings.development = preset.DevelopmentBuild;
+			EditorUserBuildSettings.enableHeadlessMode = preset.ServerBuild;
 
-			PlayerSettings.gcIncremental = buildConfiguration.UseIncrementalGC;
+			PlayerSettings.gcIncremental = preset.UseIncrementalGC;
 		}
 	}
 }

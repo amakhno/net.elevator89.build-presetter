@@ -13,6 +13,7 @@ namespace Elevator89.BuildPresetter
 		private Vector2 _scrollPos;
 		private Vector2 _scrollPosScenes;
 		private Vector2 _scrollPosResources;
+		private Vector2 _scrollPosStreamingAssets;
 
 		[MenuItem("Build/Build with Acive Preset", false, 100)]
 		private static void BuildWithAcivePreset()
@@ -125,8 +126,9 @@ namespace Elevator89.BuildPresetter
 								KeyaliasName = preset.AndroidOptions.KeyaliasName,
 								KeyaliasPassword = preset.AndroidOptions.KeyaliasPassword
 							},
-							EnabledResources = new List<string>(preset.EnabledResources),
-							EnabledScenes = new List<string>(preset.EnabledScenes),
+							IncludedResources = new List<string>(preset.IncludedResources),
+							IncludedStreamingAssets = new List<string>(preset.IncludedStreamingAssets),
+							IncludedScenes = new List<string>(preset.IncludedScenes),
 							InitialSceneIndex = preset.InitialSceneIndex,
 							UseIncrementalGC = preset.UseIncrementalGC,
 						};
@@ -163,7 +165,7 @@ namespace Elevator89.BuildPresetter
 				_scrollPosScenes = EditorGUILayout.BeginScrollView(_scrollPosScenes, EditorStyles.helpBox);
 				{
 					string[] allSccenes = Util.FindAllScenes().ToArray();
-					HashSet<string> enabledSceneAssetPaths = new HashSet<string>(preset.EnabledScenes.Where(scenePath => allSccenes.Contains(scenePath)));
+					HashSet<string> enabledSceneAssetPaths = new HashSet<string>(preset.IncludedScenes.Where(scenePath => allSccenes.Contains(scenePath)));
 
 					foreach (string scenePath in allSccenes)
 					{
@@ -173,19 +175,19 @@ namespace Elevator89.BuildPresetter
 							enabledSceneAssetPaths.Remove(scenePath);
 					}
 
-					preset.EnabledScenes = enabledSceneAssetPaths.ToList();
+					preset.IncludedScenes = enabledSceneAssetPaths.ToList();
 				}
 				EditorGUILayout.EndScrollView();
 
-				preset.InitialSceneIndex = EditorGUILayout.Popup("Initial Scene", preset.InitialSceneIndex, preset.EnabledScenes.Select(scenePath => scenePath.Replace('/', '\u2215')).ToArray());
+				preset.InitialSceneIndex = EditorGUILayout.Popup("Initial Scene", preset.InitialSceneIndex, preset.IncludedScenes.Select(scenePath => scenePath.Replace('/', '\u2215')).ToArray());
 
 				GUILayout.Space(5);
 
 				GUILayout.Label("Resources to include:");
 				_scrollPosResources = EditorGUILayout.BeginScrollView(_scrollPosResources, EditorStyles.helpBox);
 				{
-					string[] allResourcesFolders = Util.FindAllResourcesFolders().ToArray();
-					HashSet<string> enabledResourcesFolders = new HashSet<string>(preset.EnabledResources.Where(path => allResourcesFolders.Contains(path)));
+					string[] allResourcesFolders = Util.FindResourcesFolders(searchIncluded: true, searchExcluded: true).ToArray();
+					HashSet<string> enabledResourcesFolders = new HashSet<string>(preset.IncludedResources.Where(path => allResourcesFolders.Contains(path)));
 
 					foreach (string resourcesFolder in allResourcesFolders)
 					{
@@ -194,7 +196,26 @@ namespace Elevator89.BuildPresetter
 						else
 							enabledResourcesFolders.Remove(resourcesFolder);
 					}
-					preset.EnabledResources = enabledResourcesFolders.ToList();
+					preset.IncludedResources = enabledResourcesFolders.ToList();
+				}
+				EditorGUILayout.EndScrollView();
+
+				GUILayout.Space(5);
+
+				GUILayout.Label("Streaming assets to include:");
+				_scrollPosStreamingAssets = EditorGUILayout.BeginScrollView(_scrollPosStreamingAssets, EditorStyles.helpBox);
+				{
+					string[] allStreamingAssets = Util.FindStreamingAssets(searchIncluded: true, searchExcluded: true).ToArray();
+					HashSet<string> enabledStreamingAssets = new HashSet<string>(preset.IncludedStreamingAssets.Where(path => allStreamingAssets.Contains(path)));
+
+					foreach (string streamingAsset in allStreamingAssets)
+					{
+						if (EditorGUILayout.ToggleLeft(streamingAsset, enabledStreamingAssets.Contains(streamingAsset)))
+							enabledStreamingAssets.Add(streamingAsset);
+						else
+							enabledStreamingAssets.Remove(streamingAsset);
+					}
+					preset.IncludedStreamingAssets = enabledStreamingAssets.ToList();
 				}
 				EditorGUILayout.EndScrollView();
 
