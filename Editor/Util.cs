@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -19,10 +20,10 @@ namespace Elevator89.BuildPresetter
 		{
 			IEnumerable<string> streamingAssets = Enumerable.Empty<string>();
 
-			if (searchIncluded)
+			if (searchIncluded && AssetDatabase.IsValidFolder(StreamingAssetsFolder))
 				streamingAssets = streamingAssets.Concat(FindAllFilesInFolder(StreamingAssetsFolder));
 
-			if (searchExcluded)
+			if (searchExcluded && AssetDatabase.IsValidFolder(ExcludedStreamingAssetsFolder))
 				streamingAssets = streamingAssets.Concat(FindAllFilesInFolder(ExcludedStreamingAssetsFolder).Select(ToIncludedStreamingAssetPath));
 
 			return streamingAssets;
@@ -129,6 +130,8 @@ namespace Elevator89.BuildPresetter
 				return false;
 			}
 
+			EnsurePath(destination);
+
 			string moveValidationResult = AssetDatabase.ValidateMoveAsset(source, destination);
 			if (!string.IsNullOrEmpty(moveValidationResult))
 			{
@@ -137,10 +140,64 @@ namespace Elevator89.BuildPresetter
 			}
 
 			AssetDatabase.MoveAsset(source, destination);
+
+			CleanEmptyFolders(source);
+
 			return true;
 		}
 
-		private static bool DoesAssetExist(string path)
+		public static void EnsurePath(string assetPath)
+		{
+			if (!assetPath.StartsWith(BaseAssetsFolder))
+				throw new ArgumentException($"Asset path {assetPath} doesn't start from {BaseAssetsFolder}", nameof(assetPath));
+
+			string currentFolderPath = "";
+			string assetPathTail = assetPath;
+
+			while (true)
+			{
+				int firstSlashIndex = assetPathTail.IndexOf("/", StringComparison.InvariantCultureIgnoreCase);
+
+				if (firstSlashIndex == -1)
+					return;
+
+				string nextFolderName = assetPathTail.Substring(0, firstSlashIndex);
+				string nextFolderPath = currentFolderPath.Length > 0 ? currentFolderPath + "/" + nextFolderName : nextFolderName;
+
+				assetPathTail = assetPathTail.Substring(firstSlashIndex + 1, assetPathTail.Length - firstSlashIndex - 1);
+
+				if (!AssetDatabase.IsValidFolder(nextFolderPath))
+					AssetDatabase.CreateFolder(currentFolderPath, nextFolderName);
+
+				currentFolderPath = nextFolderPath;
+			}
+		}
+
+		public static void CleanEmptyFolders(string assetPath)
+		{
+			if (!assetPath.StartsWith(BaseAssetsFolder))
+				throw new ArgumentException($"Asset path {assetPath} doesn't start from {BaseAssetsFolder}", nameof(assetPath));
+
+			string folderPath = assetPath;
+
+			while (true)
+			{
+				int lastSlashIndex = folderPath.LastIndexOf("/", StringComparison.InvariantCultureIgnoreCase);
+
+				if (lastSlashIndex == -1)
+					return;
+
+				folderPath = folderPath.Substring(0, lastSlashIndex);
+				Debug.Assert(AssetDatabase.IsValidFolder(folderPath));
+
+				if (FindAllFilesInFolder(folderPath).Any())
+					return;
+
+				AssetDatabase.DeleteAsset(folderPath);
+			}
+		}
+
+		public static bool DoesAssetExist(string path)
 		{
 			return !string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(path, AssetPathToGUIDOptions.OnlyExistingAssets));
 		}
