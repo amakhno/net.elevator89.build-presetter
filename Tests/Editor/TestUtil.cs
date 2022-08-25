@@ -10,33 +10,33 @@ namespace Elevator89.BuildPresetter.Tests
 	{
 		public static void AssertFileAndFoldersAssetsExist(string rootFolder, string relativeFolderPath, string message)
 		{
-			string[] relativePathParts = relativeFolderPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+			string[] relativePathParts = relativeFolderPath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
 
 			for (int i = 1; i <= relativePathParts.Length; ++i) // Skip root Assets folder
 			{
-				string currentFolderOrAssetPath = rootFolder + "/" + string.Join('/', relativePathParts.Take(i));
+				string currentFolderOrAssetPath = rootFolder + "/" + string.Join("/", relativePathParts.Take(i));
 				Assert.True(Util.DoesAssetExist(currentFolderOrAssetPath), message);
 			}
 		}
 
 		public static void AssertFileAndFoldersAssetsExist(string folderPath, string message)
 		{
-			string[] relativePathParts = folderPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+			string[] relativePathParts = folderPath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
 
 			for (int i = 1; i <= relativePathParts.Length; ++i) // Skip root Assets folder
 			{
-				string currentFolderOrAssetPath = string.Join('/', relativePathParts.Take(i));
+				string currentFolderOrAssetPath = string.Join("/", relativePathParts.Take(i));
 				Assert.True(Util.DoesAssetExist(currentFolderOrAssetPath), message);
 			}
 		}
 
 		public static void AssertFileAndFoldersAssetsDontExist(string rootFolder, string relativeFolderPath, string message)
 		{
-			string[] relativePathParts = relativeFolderPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+			string[] relativePathParts = relativeFolderPath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
 
 			for (int i = 1; i <= relativePathParts.Length; ++i) // Skip root Assets folder
 			{
-				string currentFolderOrAssetPath = rootFolder + "/" + string.Join('/', relativePathParts.Take(i));
+				string currentFolderOrAssetPath = rootFolder + "/" + string.Join("/", relativePathParts.Take(i));
 				Assert.False(Util.DoesAssetExist(currentFolderOrAssetPath), message);
 			}
 		}
