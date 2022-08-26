@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Elevator89.BuildPresetter.Data;
+using Elevator89.BuildPresetter.FolderHierarchy;
 
 namespace Elevator89.BuildPresetter
 {
@@ -14,7 +15,8 @@ namespace Elevator89.BuildPresetter
 		private Vector2 _scrollPos;
 		private Vector2 _scrollPosScenes;
 		private Vector2 _scrollPosResources;
-		private Vector2 _scrollPosStreamingAssets;
+		private Vector2 _scrollPosStreamingAssetFolders;
+		private Vector2 _scrollPosStreamingAssetFiles;
 
 		[MenuItem("Build/Build with Acive Preset", false, 100)]
 		private static void BuildWithAcivePreset()
@@ -128,7 +130,11 @@ namespace Elevator89.BuildPresetter
 								KeyaliasPassword = preset.AndroidOptions.KeyaliasPassword
 							},
 							IncludedResources = new List<string>(preset.IncludedResources),
-							IncludedStreamingAssets = new List<string>(preset.IncludedStreamingAssets),
+							StreamingAssetsOptions = new StreamingAssetsOptions()
+							{
+								IndividuallyIncludedAssets = preset.StreamingAssetsOptions.IndividuallyIncludedAssets,
+								RecursivelyIncludedFolders = preset.StreamingAssetsOptions.RecursivelyIncludedFolders
+							},
 							IncludedScenes = new List<string>(preset.IncludedScenes),
 							InitialSceneIndex = preset.InitialSceneIndex,
 							UseIncrementalGC = preset.UseIncrementalGC,
@@ -203,22 +209,13 @@ namespace Elevator89.BuildPresetter
 
 				GUILayout.Space(5);
 
-				GUILayout.Label("Streaming assets to include:");
-				_scrollPosStreamingAssets = EditorGUILayout.BeginScrollView(_scrollPosStreamingAssets, EditorStyles.helpBox);
-				{
-					string[] allStreamingAssets = Util.FindStreamingAssets(searchIncluded: true, searchExcluded: true).ToArray();
-					HashSet<string> enabledStreamingAssets = new HashSet<string>(preset.IncludedStreamingAssets.Where(path => allStreamingAssets.Contains(path)));
+				HierarchyAsset streamingAssetsHierarchy = Util.GetHierarchyByStreamingAssetsOptions(preset.StreamingAssetsOptions);
 
-					foreach (string streamingAsset in allStreamingAssets)
-					{
-						if (EditorGUILayout.ToggleLeft(streamingAsset, enabledStreamingAssets.Contains(streamingAsset)))
-							enabledStreamingAssets.Add(streamingAsset);
-						else
-							enabledStreamingAssets.Remove(streamingAsset);
-					}
-					preset.IncludedStreamingAssets = enabledStreamingAssets.ToList();
-				}
-				EditorGUILayout.EndScrollView();
+				GUILayout.Label("Streaming assets to include:");
+				ShowStreamingAssetsFolders(streamingAssetsHierarchy);
+				ShowStreamingAssetsFiles(streamingAssetsHierarchy);
+
+				preset.StreamingAssetsOptions = Util.GetStreamingAssetsOptionsByHierarchy(streamingAssetsHierarchy);
 
 				GUILayout.Space(5);
 
@@ -280,6 +277,54 @@ namespace Elevator89.BuildPresetter
 			EditorGUILayout.EndVertical();
 
 			return buildMode;
+		}
+
+		private void ShowStreamingAssetsFolders(HierarchyAsset streamingAssetsHierarchy)
+		{
+			_scrollPosStreamingAssetFolders = EditorGUILayout.BeginScrollView(_scrollPosStreamingAssetFolders, EditorStyles.helpBox);
+			ShowStreamingAssetsFolders(0, streamingAssetsHierarchy);
+			EditorGUILayout.EndScrollView();
+		}
+
+		private void ShowStreamingAssetsFiles(HierarchyAsset streamingAssetsHierarchy)
+		{
+			_scrollPosStreamingAssetFiles = EditorGUILayout.BeginScrollView(_scrollPosStreamingAssetFiles, EditorStyles.helpBox);
+			ShowStreamingAssetsFiles("", streamingAssetsHierarchy);
+			EditorGUILayout.EndScrollView();
+		}
+
+		private void ShowStreamingAssetsFolders(int nestingLevel, HierarchyAsset hierarchyAsset)
+		{
+			if (hierarchyAsset.Children.Count == 0)
+				return;
+
+			string label = hierarchyAsset.Name;
+			for (int i = 0; i < nestingLevel; ++i)
+				label = "  " + label;
+
+			hierarchyAsset.IsIncluded = EditorGUILayout.ToggleLeft(label, hierarchyAsset.IsIncluded);
+			if (!hierarchyAsset.IsIncluded)
+				foreach (HierarchyAsset child in hierarchyAsset.Children)
+					ShowStreamingAssetsFolders(nestingLevel + 1, child);
+		}
+
+		private void ShowStreamingAssetsFiles(string accumulatedPath, HierarchyAsset hierarchyAsset)
+		{
+			string assetPath = string.IsNullOrEmpty(accumulatedPath)
+				? hierarchyAsset.Name
+				: accumulatedPath + "/" + hierarchyAsset.Name;
+
+			if (hierarchyAsset.Children.Count == 0)
+			{
+				hierarchyAsset.IsIncluded = EditorGUILayout.ToggleLeft(assetPath, hierarchyAsset.IsIncluded);
+				return;
+			}
+			else
+			{
+				if (!hierarchyAsset.IsIncluded)
+					foreach (HierarchyAsset child in hierarchyAsset.Children)
+						ShowStreamingAssetsFiles(assetPath, child);
+			}
 		}
 
 		private static string GenerateName(string desiredName, string[] otherNames)

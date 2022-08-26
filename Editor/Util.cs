@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Elevator89.BuildPresetter.Data;
+using Elevator89.BuildPresetter.FolderHierarchy;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -16,15 +18,174 @@ namespace Elevator89.BuildPresetter
 
 		private const string BaseAssetsFolder = "Assets";
 
-		public static IEnumerable<string> FindStreamingAssets(bool searchIncluded, bool searchExcluded)
+		public static StreamingAssetsOptions GetStreamingAssetsOptionsByHierarchy(HierarchyAsset hierarchy)
+		{
+			StreamingAssetsOptions streamingAssetsOptions = new StreamingAssetsOptions();
+			FillStreamingAssetsOptionsByHierarchy(hierarchy, "", streamingAssetsOptions);
+			return streamingAssetsOptions;
+		}
+
+		private static void FillStreamingAssetsOptionsByHierarchy(HierarchyAsset hierarchyAsset, string accumulatedPath, StreamingAssetsOptions streamingAssetsOptions)
+		{
+			string assetPath = string.IsNullOrEmpty(accumulatedPath)
+				? hierarchyAsset.Name
+				: accumulatedPath + "/" + hierarchyAsset.Name;
+
+			if (hierarchyAsset.Children.Count == 0)
+			{
+				if (hierarchyAsset.IsIncluded)
+					streamingAssetsOptions.IndividuallyIncludedAssets.Add(assetPath);
+			}
+			else
+			{
+				if (hierarchyAsset.IsIncluded)
+					streamingAssetsOptions.RecursivelyIncludedFolders.Add(assetPath);
+				else
+					foreach (HierarchyAsset child in hierarchyAsset.Children)
+						FillStreamingAssetsOptionsByHierarchy(child, assetPath, streamingAssetsOptions);
+			}
+		}
+
+		public static HierarchyAsset GetHierarchyByStreamingAssetsOptions(StreamingAssetsOptions streamingAssetsOptions)
+		{
+			HierarchyAsset hierarchy = Hierarchy.BuildFrom(Util.FindStreamingAssetFiles(searchIncluded: true, searchExcluded: true));
+			MarkHierarchyByStreamingAssetsOptions(hierarchy, "", streamingAssetsOptions);
+			return hierarchy;
+		}
+
+		private static void MarkHierarchyByStreamingAssetsOptions(HierarchyAsset hierarchyAsset, string accumulatedPath, StreamingAssetsOptions streamingAssetsOptions)
+		{
+			string assetPath = string.IsNullOrEmpty(accumulatedPath)
+				? hierarchyAsset.Name
+				: accumulatedPath + "/" + hierarchyAsset.Name;
+
+			if (hierarchyAsset.Children.Count == 0)
+				hierarchyAsset.IsIncluded = streamingAssetsOptions.IndividuallyIncludedAssets.Contains(assetPath);
+			else
+			{
+				bool folderIsRecursivelyIncluded = streamingAssetsOptions.RecursivelyIncludedFolders.Contains(assetPath);
+				hierarchyAsset.IsIncluded = folderIsRecursivelyIncluded;
+
+				foreach (HierarchyAsset child in hierarchyAsset.Children)
+					if (folderIsRecursivelyIncluded)
+						MarkHierarchyIncluded(child);
+					else
+						MarkHierarchyByStreamingAssetsOptions(child, assetPath, streamingAssetsOptions);
+			}
+		}
+
+		private static void MarkHierarchyIncluded(HierarchyAsset hierarchyAsset)
+		{
+			hierarchyAsset.IsIncluded = true;
+			foreach (HierarchyAsset child in hierarchyAsset.Children)
+				MarkHierarchyIncluded(child);
+		}
+
+		public static HierarchyAsset GetHierarchyByCurrentSetup()
+		{
+			HierarchyAsset hierarchy = Hierarchy.BuildFrom(Util.FindStreamingAssetFiles(searchIncluded: true, searchExcluded: true));
+			MarkHierarchyByCurrentSetup(hierarchy, "");
+			return hierarchy;
+		}
+
+		private static void MarkHierarchyByCurrentSetup(HierarchyAsset hierarchyAsset, string accumulatedPath)
+		{
+			string assetPath = string.IsNullOrEmpty(accumulatedPath)
+				? hierarchyAsset.Name
+				: accumulatedPath + "/" + hierarchyAsset.Name;
+
+			if (hierarchyAsset.Children.Count == 0)
+			{
+				hierarchyAsset.IsIncluded = Util.IsStreamingAssetIncluded(assetPath);
+			}
+			else
+			{
+				bool folderIsRecursivelyIncluded = true;
+				foreach (HierarchyAsset child in hierarchyAsset.Children)
+				{
+					MarkHierarchyByCurrentSetup(child, assetPath);
+					if (!child.IsIncluded)
+						folderIsRecursivelyIncluded = false;
+				}
+
+				hierarchyAsset.IsIncluded = folderIsRecursivelyIncluded;
+			}
+		}
+
+		public static void ApplyHierarchyToCurrentSetup(HierarchyAsset hierarchyAsset)
+		{
+			ApplyHierarchyToCurrentSetup(hierarchyAsset, "");
+		}
+
+		private static void ApplyHierarchyToCurrentSetup(HierarchyAsset hierarchyAsset, string accumulatedPath)
+		{
+			string assetPath = string.IsNullOrEmpty(accumulatedPath)
+				? hierarchyAsset.Name
+				: accumulatedPath + "/" + hierarchyAsset.Name;
+
+			if (hierarchyAsset.Children.Count == 0)
+			{
+				Util.SetStreamingAssetIncluded(assetPath, hierarchyAsset.IsIncluded);
+			}
+			else
+			{
+				Util.SetStreamingAssetIncluded(assetPath, hierarchyAsset.IsIncluded);
+
+				if (!hierarchyAsset.IsIncluded)
+					foreach (HierarchyAsset child in hierarchyAsset.Children)
+						ApplyHierarchyToCurrentSetup(child, assetPath);
+			}
+		}
+
+		internal static HierarchyAsset BuildAllStreamingAssetsHierarchy()
+		{
+			return Hierarchy.BuildFrom(FindStreamingAssetFiles(searchIncluded: true, searchExcluded: true));
+		}
+
+		internal static HierarchyAsset BuildAssetsHierarchy(string searchInFolder)
+		{
+			IEnumerable<string> allAssets = FindAllFilesInFolder(searchInFolder);
+			return Hierarchy.BuildFrom(allAssets);
+		}
+
+		public static IEnumerable<string> FindAllStreamingAssetsFolders(string searchInFolder, bool searchIncluded, bool searchExcluded)
 		{
 			IEnumerable<string> streamingAssets = Enumerable.Empty<string>();
 
-			if (searchIncluded && AssetDatabase.IsValidFolder(StreamingAssetsFolder))
-				streamingAssets = streamingAssets.Concat(FindAllFilesInFolder(StreamingAssetsFolder));
+			if (searchIncluded && AssetDatabase.IsValidFolder(searchInFolder))
+				streamingAssets = streamingAssets.Union(FindFolders(searchInFolder));
 
-			if (searchExcluded && AssetDatabase.IsValidFolder(ExcludedStreamingAssetsFolder))
-				streamingAssets = streamingAssets.Concat(FindAllFilesInFolder(ExcludedStreamingAssetsFolder).Select(ToIncludedStreamingAssetPath));
+			string excludedSearchInFolder = ToExcludedStreamingAssetPath(searchInFolder);
+
+			if (searchExcluded && AssetDatabase.IsValidFolder(excludedSearchInFolder))
+				streamingAssets = streamingAssets.Union(FindFolders(excludedSearchInFolder).Select(ToIncludedStreamingAssetPath));
+
+			return streamingAssets.OrderBy(path => path);
+		}
+
+		public static bool IsFolderRecursivelyIncluded(string folderPath)
+		{
+			// True of there are no excluded assets in folder
+			return FindStreamingAssetFiles(folderPath, searchIncluded: true, searchExcluded: false).Any()
+				&& !FindStreamingAssetFiles(folderPath, searchIncluded: false, searchExcluded: true).Any();
+		}
+
+		public static IEnumerable<string> FindStreamingAssetFiles(bool searchIncluded, bool searchExcluded)
+		{
+			return FindStreamingAssetFiles(StreamingAssetsFolder, searchIncluded, searchExcluded);
+		}
+
+		public static IEnumerable<string> FindStreamingAssetFiles(string searchInFolder, bool searchIncluded, bool searchExcluded)
+		{
+			IEnumerable<string> streamingAssets = Enumerable.Empty<string>();
+
+			if (searchIncluded && AssetDatabase.IsValidFolder(searchInFolder))
+				streamingAssets = streamingAssets.Concat(FindAllFilesInFolder(searchInFolder));
+
+			string excludedSearchInFolder = ToExcludedStreamingAssetPath(searchInFolder);
+
+			if (searchExcluded && AssetDatabase.IsValidFolder(excludedSearchInFolder))
+				streamingAssets = streamingAssets.Concat(FindAllFilesInFolder(excludedSearchInFolder).Select(ToIncludedStreamingAssetPath));
 
 			return streamingAssets;
 		}
@@ -44,10 +205,10 @@ namespace Elevator89.BuildPresetter
 			IEnumerable<string> resourcesFolders = Enumerable.Empty<string>();
 
 			if (searchIncluded)
-				resourcesFolders = resourcesFolders.Concat(FindAllFolders(ResourcesFolderName, BaseAssetsFolder));
+				resourcesFolders = resourcesFolders.Concat(FindFolders(ResourcesFolderName, BaseAssetsFolder));
 
 			if (searchExcluded)
-				resourcesFolders = resourcesFolders.Concat(FindAllFolders(ExcludedResourcesFolderName, BaseAssetsFolder).Select(ToIncludedResourcesPath));
+				resourcesFolders = resourcesFolders.Concat(FindFolders(ExcludedResourcesFolderName, BaseAssetsFolder).Select(ToIncludedResourcesPath));
 
 			return resourcesFolders;
 		}
@@ -209,10 +370,17 @@ namespace Elevator89.BuildPresetter
 				.Select(AssetDatabase.GUIDToAssetPath);
 		}
 
-		public static IEnumerable<string> FindAllFolders(string folderName, string searchInFolder)
+		public static IEnumerable<string> FindFolders(string searchInFolder)
 		{
+			return FindFolders(null, searchInFolder);
+		}
+
+		public static IEnumerable<string> FindFolders(string folderName, string searchInFolder)
+		{
+			string filter = string.IsNullOrWhiteSpace(folderName) ? " t:folder" : $"\"{folderName}\" t:folder";
+
 			return AssetDatabase
-				.FindAssets($"\"{folderName}\" t:folder", new string[] { searchInFolder })
+				.FindAssets(filter, new string[] { searchInFolder })
 				.Select(AssetDatabase.GUIDToAssetPath)
 				.Where(path => path.EndsWith($"/{folderName}"));
 		}
