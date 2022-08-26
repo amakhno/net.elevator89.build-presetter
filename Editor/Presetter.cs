@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Elevator89.BuildPresetter.Data;
 
 namespace Elevator89.BuildPresetter
 {

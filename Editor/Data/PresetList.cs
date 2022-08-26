@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-namespace Elevator89.BuildPresetter
+namespace Elevator89.BuildPresetter.Data
 {
 	[Serializable]
 	public class PresetList

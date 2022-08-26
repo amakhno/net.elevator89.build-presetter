@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using Elevator89.BuildPresetter.Data;
 
 namespace Elevator89.BuildPresetter
 {
