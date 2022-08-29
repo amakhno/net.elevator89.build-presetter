@@ -162,60 +162,90 @@ namespace Elevator89.BuildPresetter
 					_presets.ActivePresetName = preset.Name;
 				}
 
-				preset.AppId = EditorGUILayout.TextField("App ID", preset.AppId);
-				preset.AppName = EditorGUILayout.TextField("App name", preset.AppName);
-				preset.AppIconPath = EditorGUILayout.TextField("App icon path", preset.AppIconPath);
-				GUI.Box(new Rect(10, 150, 200, 50), new GUIContent("            <--- App Icon", AssetDatabase.LoadAssetAtPath<Texture2D>(preset.AppIconPath)));
-				GUILayout.Space(70);
-
-				GUILayout.Label("Scenes to include:");
-				_scrollPosScenes = EditorGUILayout.BeginScrollView(_scrollPosScenes, EditorStyles.helpBox);
+				GUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
 				{
-					string[] allSccenes = Util.FindAllScenes().ToArray();
-					HashSet<string> enabledSceneAssetPaths = new HashSet<string>(preset.IncludedScenes.Where(scenePath => allSccenes.Contains(scenePath)));
-
-					foreach (string scenePath in allSccenes)
+					GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
 					{
-						if (EditorGUILayout.ToggleLeft(scenePath, enabledSceneAssetPaths.Contains(scenePath)))
-							enabledSceneAssetPaths.Add(scenePath);
-						else
-							enabledSceneAssetPaths.Remove(scenePath);
+						preset.AppId = EditorGUILayout.TextField("App ID", preset.AppId);
+						preset.AppName = EditorGUILayout.TextField("App name", preset.AppName);
+						preset.AppIconPath = EditorGUILayout.TextField("App icon path", preset.AppIconPath);
 					}
+					GUILayout.EndVertical();
 
-					preset.IncludedScenes = enabledSceneAssetPaths.ToList();
+					GUI.enabled = false;
+					Texture2D iconTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(preset.AppIconPath);
+					iconTexture = (Texture2D)EditorGUILayout.ObjectField(iconTexture, typeof(Texture2D), false, GUILayout.Width(64), GUILayout.Height(64), GUILayout.ExpandWidth(false));
+					GUI.enabled = true;
 				}
-				EditorGUILayout.EndScrollView();
-
-				preset.InitialSceneIndex = EditorGUILayout.Popup("Initial Scene", preset.InitialSceneIndex, preset.IncludedScenes.Select(scenePath => scenePath.Replace('/', '\u2215')).ToArray());
+				GUILayout.EndHorizontal();
 
 				GUILayout.Space(5);
 
-				GUILayout.Label("Resources to include:");
-				_scrollPosResources = EditorGUILayout.BeginScrollView(_scrollPosResources, EditorStyles.helpBox);
+				GUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
 				{
-					string[] allResourcesFolders = Util.FindResourcesFolders(searchIncluded: true, searchExcluded: true).ToArray();
-					HashSet<string> enabledResourcesFolders = new HashSet<string>(preset.IncludedResources.Where(path => allResourcesFolders.Contains(path)));
-
-					foreach (string resourcesFolder in allResourcesFolders)
+					GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
 					{
-						if (EditorGUILayout.ToggleLeft(resourcesFolder, enabledResourcesFolders.Contains(resourcesFolder)))
-							enabledResourcesFolders.Add(resourcesFolder);
-						else
-							enabledResourcesFolders.Remove(resourcesFolder);
+						GUILayout.Label("Initial scene:");
+						preset.InitialSceneIndex = EditorGUILayout.Popup(preset.InitialSceneIndex, preset.IncludedScenes.Select(scenePath => scenePath.Replace('/', '\u2215')).ToArray());
+
+						GUILayout.Label("Scenes:");
+						_scrollPosScenes = EditorGUILayout.BeginScrollView(_scrollPosScenes, EditorStyles.helpBox);
+						{
+							string[] allSccenes = Util.FindAllScenes().ToArray();
+							HashSet<string> enabledSceneAssetPaths = new HashSet<string>(preset.IncludedScenes.Where(scenePath => allSccenes.Contains(scenePath)));
+
+							foreach (string scenePath in allSccenes)
+							{
+								if (EditorGUILayout.ToggleLeft(scenePath, enabledSceneAssetPaths.Contains(scenePath)))
+									enabledSceneAssetPaths.Add(scenePath);
+								else
+									enabledSceneAssetPaths.Remove(scenePath);
+							}
+
+							preset.IncludedScenes = enabledSceneAssetPaths.ToList();
+						}
+						EditorGUILayout.EndScrollView();
 					}
-					preset.IncludedResources = enabledResourcesFolders.ToList();
+					GUILayout.EndVertical();
+
+					GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
+					{
+						GUILayout.Label("Resources:");
+
+						_scrollPosResources = EditorGUILayout.BeginScrollView(_scrollPosResources, EditorStyles.helpBox);
+						{
+							string[] allResourcesFolders = Util.FindResourcesFolders(searchIncluded: true, searchExcluded: true).ToArray();
+							HashSet<string> enabledResourcesFolders = new HashSet<string>(preset.IncludedResources.Where(path => allResourcesFolders.Contains(path)));
+
+							foreach (string resourcesFolder in allResourcesFolders)
+							{
+								if (EditorGUILayout.ToggleLeft(resourcesFolder, enabledResourcesFolders.Contains(resourcesFolder)))
+									enabledResourcesFolders.Add(resourcesFolder);
+								else
+									enabledResourcesFolders.Remove(resourcesFolder);
+							}
+							preset.IncludedResources = enabledResourcesFolders.ToList();
+						}
+						EditorGUILayout.EndScrollView();
+					}
+					GUILayout.EndVertical();
+
+					GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
+					{
+						GUILayout.Label("Streaming assets:");
+
+						// ToDo: Consider using TreeView: https://docs.unity3d.com/Manual/TreeViewAPI.html
+						_scrollPosStreamingAssetFolders = EditorGUILayout.BeginScrollView(_scrollPosStreamingAssetFolders, EditorStyles.helpBox, GUILayout.ExpandWidth(true));
+						{
+							HierarchyAsset streamingAssetsHierarchy = Util.GetStreamingAssetsHierarchyByOptions(preset.StreamingAssetsOptions);
+							ShowStreamingAssetsFoldersAndFiles(0, parentIsIncluded: false, streamingAssetsHierarchy);
+							preset.StreamingAssetsOptions = Util.GetStreamingAssetsOptionsByHierarchy(streamingAssetsHierarchy);
+						}
+						EditorGUILayout.EndScrollView();
+					}
+					GUILayout.EndVertical();
 				}
-				EditorGUILayout.EndScrollView();
-
-				GUILayout.Space(5);
-
-				HierarchyAsset streamingAssetsHierarchy = Util.GetStreamingAssetsHierarchyByOptions(preset.StreamingAssetsOptions);
-
-				GUILayout.Label("Streaming assets to include:");
-				ShowStreamingAssetsFolders(streamingAssetsHierarchy);
-				ShowStreamingAssetsFiles(streamingAssetsHierarchy);
-
-				preset.StreamingAssetsOptions = Util.GetStreamingAssetsOptionsByHierarchy(streamingAssetsHierarchy);
+				GUILayout.EndHorizontal();
 
 				GUILayout.Space(5);
 
@@ -279,51 +309,19 @@ namespace Elevator89.BuildPresetter
 			return buildMode;
 		}
 
-		private void ShowStreamingAssetsFolders(HierarchyAsset streamingAssetsHierarchy)
+		private void ShowStreamingAssetsFoldersAndFiles(int nestingLevel, bool parentIsIncluded, HierarchyAsset hierarchyAsset)
 		{
-			_scrollPosStreamingAssetFolders = EditorGUILayout.BeginScrollView(_scrollPosStreamingAssetFolders, EditorStyles.helpBox);
-			ShowStreamingAssetsFolders(0, streamingAssetsHierarchy);
-			EditorGUILayout.EndScrollView();
-		}
+			GUIStyle style = new GUIStyle(EditorStyles.label);
+			style.contentOffset = new Vector2(nestingLevel * 20f, 0f);
 
-		private void ShowStreamingAssetsFiles(HierarchyAsset streamingAssetsHierarchy)
-		{
-			_scrollPosStreamingAssetFiles = EditorGUILayout.BeginScrollView(_scrollPosStreamingAssetFiles, EditorStyles.helpBox);
-			ShowStreamingAssetsFiles("", streamingAssetsHierarchy);
-			EditorGUILayout.EndScrollView();
-		}
+			GUI.enabled = !parentIsIncluded;
+			hierarchyAsset.IsIncluded = EditorGUILayout.ToggleLeft(hierarchyAsset.Name, hierarchyAsset.IsIncluded, style);
+			GUI.enabled = true;
 
-		private void ShowStreamingAssetsFolders(int nestingLevel, HierarchyAsset hierarchyAsset)
-		{
-			if (hierarchyAsset.Children.Count == 0)
-				return;
-
-			string label = hierarchyAsset.Name;
-			for (int i = 0; i < nestingLevel; ++i)
-				label = "  " + label;
-
-			hierarchyAsset.IsIncluded = EditorGUILayout.ToggleLeft(label, hierarchyAsset.IsIncluded);
-			if (!hierarchyAsset.IsIncluded)
+			if (hierarchyAsset.Children.Count > 0)
+			{
 				foreach (HierarchyAsset child in hierarchyAsset.Children)
-					ShowStreamingAssetsFolders(nestingLevel + 1, child);
-		}
-
-		private void ShowStreamingAssetsFiles(string accumulatedPath, HierarchyAsset hierarchyAsset)
-		{
-			string assetPath = string.IsNullOrEmpty(accumulatedPath)
-				? hierarchyAsset.Name
-				: accumulatedPath + "/" + hierarchyAsset.Name;
-
-			if (hierarchyAsset.Children.Count == 0)
-			{
-				hierarchyAsset.IsIncluded = EditorGUILayout.ToggleLeft(assetPath, hierarchyAsset.IsIncluded);
-				return;
-			}
-			else
-			{
-				if (!hierarchyAsset.IsIncluded)
-					foreach (HierarchyAsset child in hierarchyAsset.Children)
-						ShowStreamingAssetsFiles(assetPath, child);
+					ShowStreamingAssetsFoldersAndFiles(nestingLevel + 1, hierarchyAsset.IsIncluded, child);
 			}
 		}
 
