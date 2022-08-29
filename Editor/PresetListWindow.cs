@@ -209,7 +209,7 @@ namespace Elevator89.BuildPresetter
 
 				GUILayout.Space(5);
 
-				HierarchyAsset streamingAssetsHierarchy = Util.GetHierarchyByStreamingAssetsOptions(preset.StreamingAssetsOptions);
+				HierarchyAsset streamingAssetsHierarchy = Util.GetStreamingAssetsHierarchyByOptions(preset.StreamingAssetsOptions);
 
 				GUILayout.Label("Streaming assets to include:");
 				ShowStreamingAssetsFolders(streamingAssetsHierarchy);

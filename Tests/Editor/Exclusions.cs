@@ -37,12 +37,12 @@ namespace Elevator89.BuildPresetter.Tests
 
 			TestUtil.CreateAsset(testAssetPath);
 
-			Util.SetStreamingAssetIncluded(testAssetPath, false);
+			Util.SetStreamingAssetIncluded(relativeStreamingAssetPath, false);
 
 			TestUtil.AssertFileAndFoldersAssetsExist(ExcludedStreamingAssetsPath, relativeStreamingAssetPath, "Excluded path parts should exist for asset");
 			TestUtil.AssertFileAndFoldersAssetsDontExist(StreamingAssetsPath, relativeStreamingAssetPath, "Included path parts should not exist for asset");
 
-			Util.SetStreamingAssetIncluded(testAssetPath, true);
+			Util.SetStreamingAssetIncluded(relativeStreamingAssetPath, true);
 
 			TestUtil.AssertFileAndFoldersAssetsDontExist(ExcludedStreamingAssetsPath, relativeStreamingAssetPath, "Excluded path parts should not exist for asset");
 			TestUtil.AssertFileAndFoldersAssetsExist(StreamingAssetsPath, relativeStreamingAssetPath, "Included path parts should exist for asset");
@@ -56,19 +56,17 @@ namespace Elevator89.BuildPresetter.Tests
 			string asset1RelativePath = relativeStreamingAssetFolder + "/" + asset1Name;
 			string asset2RelativePath = relativeStreamingAssetFolder + "/" + asset2Name;
 
-			string assetFolderPath = StreamingAssetsPath + "/" + relativeStreamingAssetFolder;
-
 			TestUtil.CreateAsset(StreamingAssetsPath + "/" + asset1RelativePath);
 			TestUtil.CreateAsset(StreamingAssetsPath + "/" + asset2RelativePath);
 
-			Util.SetStreamingAssetIncluded(assetFolderPath, false);
+			Util.SetStreamingAssetIncluded(relativeStreamingAssetFolder, false);
 
 			TestUtil.AssertFileAndFoldersAssetsExist(ExcludedStreamingAssetsPath, asset1RelativePath, "Excluded path parts should exist for asset1");
 			TestUtil.AssertFileAndFoldersAssetsExist(ExcludedStreamingAssetsPath, asset2RelativePath, "Excluded path parts should exist for asset2");
 			TestUtil.AssertFileAndFoldersAssetsDontExist(StreamingAssetsPath, asset1RelativePath, "Included path parts should not exist for asset1");
 			TestUtil.AssertFileAndFoldersAssetsDontExist(StreamingAssetsPath, asset2RelativePath, "Included path parts should not exist for asset2");
 
-			Util.SetStreamingAssetIncluded(assetFolderPath, true);
+			Util.SetStreamingAssetIncluded(relativeStreamingAssetFolder, true);
 
 			TestUtil.AssertFileAndFoldersAssetsDontExist(ExcludedStreamingAssetsPath, asset1RelativePath, "Excluded path parts should not exist for asset1");
 			TestUtil.AssertFileAndFoldersAssetsDontExist(ExcludedStreamingAssetsPath, asset2RelativePath, "Excluded path parts should not exist for asset2");
@@ -90,16 +88,16 @@ namespace Elevator89.BuildPresetter.Tests
 			TestUtil.CreateAsset(asset1Path);
 			TestUtil.CreateAsset(asset2Path);
 
-			Util.SetStreamingAssetIncluded(asset1Path, false);
-			Util.SetStreamingAssetIncluded(asset2Path, false);
+			Util.SetStreamingAssetIncluded(asset1RelativePath, false);
+			Util.SetStreamingAssetIncluded(asset2RelativePath, false);
 
 			TestUtil.AssertFileAndFoldersAssetsExist(ExcludedStreamingAssetsPath, asset1RelativePath, "Excluded path parts should exist for asset1");
 			TestUtil.AssertFileAndFoldersAssetsExist(ExcludedStreamingAssetsPath, asset2RelativePath, "Excluded path parts should exist for asset2");
 			TestUtil.AssertFileAndFoldersAssetsDontExist(StreamingAssetsPath, asset1RelativePath, "Included path parts should not exist for asset1");
 			TestUtil.AssertFileAndFoldersAssetsDontExist(StreamingAssetsPath, asset2RelativePath, "Included path parts should not exist for asset2");
 
-			Util.SetStreamingAssetIncluded(asset1Path, true);
-			Util.SetStreamingAssetIncluded(asset2Path, true);
+			Util.SetStreamingAssetIncluded(asset1RelativePath, true);
+			Util.SetStreamingAssetIncluded(asset2RelativePath, true);
 
 			TestUtil.AssertFileAndFoldersAssetsDontExist(ExcludedStreamingAssetsPath, asset1RelativePath, "Excluded path parts should not exist for asset1");
 			TestUtil.AssertFileAndFoldersAssetsDontExist(ExcludedStreamingAssetsPath, asset2RelativePath, "Excluded path parts should not exist for asset2");
