@@ -18,17 +18,17 @@ namespace Elevator89.BuildPresetter
 
 		private const string BaseAssetsFolder = "Assets";
 
-		public static StreamingAssetsOptions GetStreamingAssetsOptionsByHierarchy(HierarchyAsset hierarchy)
+		public static AssetsLists GetAssetsListsByHierarchy(HierarchyAsset hierarchy)
 		{
-			StreamingAssetsOptions streamingAssetsOptions = new StreamingAssetsOptions();
+			AssetsLists lists = new AssetsLists();
 
 			foreach (HierarchyAsset child in hierarchy.Children) // Hierarchy root is not processed, as its folder may not exist
-				FillStreamingAssetsOptionsByHierarchy(child, "", streamingAssetsOptions);
+				FillAssetsListsByHierarchy(child, "", lists);
 
-			return streamingAssetsOptions;
+			return lists;
 		}
 
-		private static void FillStreamingAssetsOptionsByHierarchy(HierarchyAsset hierarchyAsset, string accumulatedPath, StreamingAssetsOptions streamingAssetsOptions)
+		private static void FillAssetsListsByHierarchy(HierarchyAsset hierarchyAsset, string accumulatedPath, AssetsLists lists)
 		{
 			string assetPath = string.IsNullOrEmpty(accumulatedPath)
 				? hierarchyAsset.Name
@@ -37,60 +37,60 @@ namespace Elevator89.BuildPresetter
 			if (hierarchyAsset.Children.Count == 0)
 			{
 				if (hierarchyAsset.IsIncluded)
-					streamingAssetsOptions.IndividuallyIncludedAssets.Add(assetPath);
+					lists.Files.Add(assetPath);
 			}
 			else
 			{
 				if (hierarchyAsset.IsIncluded)
-					streamingAssetsOptions.RecursivelyIncludedFolders.Add(assetPath);
+					lists.Folders.Add(assetPath);
 				else
 					foreach (HierarchyAsset child in hierarchyAsset.Children)
-						FillStreamingAssetsOptionsByHierarchy(child, assetPath, streamingAssetsOptions);
+						FillAssetsListsByHierarchy(child, assetPath, lists);
 			}
 		}
 
-		public static HierarchyAsset GetStreamingAssetsHierarchyByOptions(StreamingAssetsOptions streamingAssetsOptions)
+		public static HierarchyAsset GetStreamingAssetsHierarchyByLists(AssetsLists lists)
 		{
-			HierarchyAsset hierarchy = BuildStreamingAssetsHierarchyWithVirtualRool();
+			HierarchyAsset hierarchy = BuildStreamingAssetsHierarchyWithVirtualRoot();
 
 			foreach (HierarchyAsset child in hierarchy.Children) // Hierarchy root is not processed, as its folder may not exist
-				MarkStreamingAssetsHierarchyByOptions(child, "", streamingAssetsOptions);
+				MarkAssetsHierarchyByLists(child, "", lists);
 
 			return hierarchy;
 		}
 
-		private static void MarkStreamingAssetsHierarchyByOptions(HierarchyAsset hierarchyAsset, string accumulatedPath, StreamingAssetsOptions streamingAssetsOptions)
+		private static void MarkAssetsHierarchyByLists(HierarchyAsset hierarchyAsset, string accumulatedPath, AssetsLists lists)
 		{
 			string assetPath = string.IsNullOrEmpty(accumulatedPath)
 				? hierarchyAsset.Name
 				: accumulatedPath + "/" + hierarchyAsset.Name;
 
 			if (hierarchyAsset.Children.Count == 0)
-				hierarchyAsset.IsIncluded = streamingAssetsOptions.IndividuallyIncludedAssets.Contains(assetPath);
+				hierarchyAsset.IsIncluded = lists.Files.Contains(assetPath);
 			else
 			{
-				bool folderIsRecursivelyIncluded = streamingAssetsOptions.RecursivelyIncludedFolders.Contains(assetPath);
-				hierarchyAsset.IsIncluded = folderIsRecursivelyIncluded;
+				bool folderIsIncluded = lists.Folders.Contains(assetPath);
+				hierarchyAsset.IsIncluded = folderIsIncluded;
 
 				foreach (HierarchyAsset child in hierarchyAsset.Children)
-					if (folderIsRecursivelyIncluded)
-						MarkStreamingAssetsHierarchyIncluded(child);
+					if (folderIsIncluded)
+						MarkAssetsHierarchyWithValue(child, included: true);
 					else
-						MarkStreamingAssetsHierarchyByOptions(child, assetPath, streamingAssetsOptions);
+						MarkAssetsHierarchyByLists(child, assetPath, lists);
 			}
 		}
 
-		private static void MarkStreamingAssetsHierarchyIncluded(HierarchyAsset hierarchyAsset)
+		private static void MarkAssetsHierarchyWithValue(HierarchyAsset hierarchyAsset, bool included)
 		{
-			hierarchyAsset.IsIncluded = true;
+			hierarchyAsset.IsIncluded = included;
 
 			foreach (HierarchyAsset child in hierarchyAsset.Children)
-				MarkStreamingAssetsHierarchyIncluded(child);
+				MarkAssetsHierarchyWithValue(child, included);
 		}
 
 		public static HierarchyAsset GetStreamingAssetsHierarchyByCurrentSetup()
 		{
-			HierarchyAsset hierarchy = BuildStreamingAssetsHierarchyWithVirtualRool();
+			HierarchyAsset hierarchy = BuildStreamingAssetsHierarchyWithVirtualRoot();
 
 			foreach (HierarchyAsset child in hierarchy.Children) // Hierarchy root is not processed, as its folder may not exist
 				MarkStreamingAssetsHierarchyByCurrentSetup(child, "");
@@ -148,7 +148,7 @@ namespace Elevator89.BuildPresetter
 			}
 		}
 
-		private static HierarchyAsset BuildStreamingAssetsHierarchyWithVirtualRool()
+		private static HierarchyAsset BuildStreamingAssetsHierarchyWithVirtualRoot()
 		{
 			return Hierarchy.BuildFrom(
 				GetStreamingAssets(searchIncluded: true, searchExcluded: true)

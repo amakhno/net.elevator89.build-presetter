@@ -130,10 +130,10 @@ namespace Elevator89.BuildPresetter
 								KeyaliasPassword = preset.AndroidOptions.KeyaliasPassword
 							},
 							IncludedResources = new List<string>(preset.IncludedResources),
-							StreamingAssetsOptions = new StreamingAssetsOptions()
+							IncludedStreamingAssets = new AssetsLists()
 							{
-								IndividuallyIncludedAssets = preset.StreamingAssetsOptions.IndividuallyIncludedAssets,
-								RecursivelyIncludedFolders = preset.StreamingAssetsOptions.RecursivelyIncludedFolders
+								Files = preset.IncludedStreamingAssets.Files,
+								Folders = preset.IncludedStreamingAssets.Folders
 							},
 							IncludedScenes = new List<string>(preset.IncludedScenes),
 							InitialSceneIndex = preset.InitialSceneIndex,
@@ -237,9 +237,9 @@ namespace Elevator89.BuildPresetter
 						// ToDo: Consider using TreeView: https://docs.unity3d.com/Manual/TreeViewAPI.html
 						_scrollPosStreamingAssetFolders = EditorGUILayout.BeginScrollView(_scrollPosStreamingAssetFolders, EditorStyles.helpBox, GUILayout.ExpandWidth(true));
 						{
-							HierarchyAsset streamingAssetsHierarchy = Util.GetStreamingAssetsHierarchyByOptions(preset.StreamingAssetsOptions);
+							HierarchyAsset streamingAssetsHierarchy = Util.GetStreamingAssetsHierarchyByLists(preset.IncludedStreamingAssets);
 							ShowStreamingAssetsFoldersAndFiles(0, parentIsIncluded: false, streamingAssetsHierarchy);
-							preset.StreamingAssetsOptions = Util.GetStreamingAssetsOptionsByHierarchy(streamingAssetsHierarchy);
+							preset.IncludedStreamingAssets = Util.GetAssetsListsByHierarchy(streamingAssetsHierarchy);
 						}
 						EditorGUILayout.EndScrollView();
 					}

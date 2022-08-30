@@ -41,7 +41,7 @@ namespace Elevator89.BuildPresetter
 			preset.IncludedResources = Util.FindResourcesFolders(searchIncluded: true, searchExcluded: false).ToList();
 
 			HierarchyAsset streamingAssetsHierarchy = Util.GetStreamingAssetsHierarchyByCurrentSetup();
-			preset.StreamingAssetsOptions = Util.GetStreamingAssetsOptionsByHierarchy(streamingAssetsHierarchy);
+			preset.IncludedStreamingAssets = Util.GetAssetsListsByHierarchy(streamingAssetsHierarchy);
 
 			preset.AndroidOptions = new AndroidOptions()
 			{
@@ -82,7 +82,7 @@ namespace Elevator89.BuildPresetter
 			foreach (string resourcesFolderPath in Util.FindResourcesFolders(searchIncluded: true, searchExcluded: true))
 				Util.SetResourcesEnabled(resourcesFolderPath, preset.IncludedResources.Contains(resourcesFolderPath));
 
-			HierarchyAsset streamingAssetsHierarchy = Util.GetStreamingAssetsHierarchyByOptions(preset.StreamingAssetsOptions);
+			HierarchyAsset streamingAssetsHierarchy = Util.GetStreamingAssetsHierarchyByLists(preset.IncludedStreamingAssets);
 			Util.ApplyStreamingAssetsHierarchyToCurrentSetup(streamingAssetsHierarchy);
 
 			AssetDatabase.Refresh();

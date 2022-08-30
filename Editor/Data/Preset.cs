@@ -42,7 +42,7 @@ namespace Elevator89.BuildPresetter.Data
 		public List<string> IncludedResources = new List<string>();
 
 		[SerializeField]
-		public StreamingAssetsOptions StreamingAssetsOptions;
+		public AssetsLists IncludedStreamingAssets;
 
 		[SerializeField]
 		public AndroidOptions AndroidOptions;
