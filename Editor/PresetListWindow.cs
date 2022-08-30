@@ -15,8 +15,7 @@ namespace Elevator89.BuildPresetter
 		private Vector2 _scrollPos;
 		private Vector2 _scrollPosScenes;
 		private Vector2 _scrollPosResources;
-		private Vector2 _scrollPosStreamingAssetFolders;
-		private Vector2 _scrollPosStreamingAssetFiles;
+		private Vector2 _scrollPosStreamingAssets;
 
 		[MenuItem("Build/Build with Acive Preset", false, 100)]
 		private static void BuildWithAcivePreset()
@@ -235,11 +234,11 @@ namespace Elevator89.BuildPresetter
 						GUILayout.Label("Streaming assets:");
 
 						// ToDo: Consider using TreeView: https://docs.unity3d.com/Manual/TreeViewAPI.html
-						_scrollPosStreamingAssetFolders = EditorGUILayout.BeginScrollView(_scrollPosStreamingAssetFolders, EditorStyles.helpBox, GUILayout.ExpandWidth(true));
+						_scrollPosStreamingAssets = EditorGUILayout.BeginScrollView(_scrollPosStreamingAssets, EditorStyles.helpBox, GUILayout.ExpandWidth(true));
 						{
-							HierarchyAsset streamingAssetsHierarchy = Util.GetStreamingAssetsHierarchyByLists(preset.IncludedStreamingAssets);
+							HierarchyAsset streamingAssetsHierarchy = StreamingAssetsUtil.GetStreamingAssetsHierarchyByLists(preset.IncludedStreamingAssets);
 							ShowStreamingAssetsFoldersAndFiles(0, parentIsIncluded: false, streamingAssetsHierarchy);
-							preset.IncludedStreamingAssets = Util.GetAssetsListsByHierarchy(streamingAssetsHierarchy);
+							preset.IncludedStreamingAssets = StreamingAssetsUtil.GetAssetsListsByHierarchy(streamingAssetsHierarchy);
 						}
 						EditorGUILayout.EndScrollView();
 					}
