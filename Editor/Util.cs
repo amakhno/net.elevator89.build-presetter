@@ -65,18 +65,29 @@ namespace Elevator89.BuildPresetter
 		private static bool ValidateExcludableAsset(string includedAssetPath, string excludedAssetPath, out bool assetIsValidAndIncluded)
 		{
 			bool includedAssetExists = DoesAssetExist(includedAssetPath);
-			bool excludedAssetExists = DoesAssetExist(excludedAssetPath);
-			assetIsValidAndIncluded = false;
+			bool includedAssetIsAFolder = includedAssetExists && AssetDatabase.IsValidFolder(includedAssetPath);
 
-			if (includedAssetExists && excludedAssetExists)
-			{
-				Debug.LogErrorFormat("Both included and excluded {0} exist", includedAssetPath);
-				return false;
-			}
+			bool excludedAssetExists = DoesAssetExist(excludedAssetPath);
+			bool excludedAssetIsAFolder = excludedAssetExists && AssetDatabase.IsValidFolder(excludedAssetPath);
+
+			assetIsValidAndIncluded = false;
 
 			if (!includedAssetExists && !excludedAssetExists)
 			{
 				Debug.LogErrorFormat("Neither included nor excluded {0} exist", includedAssetPath);
+				return false;
+			}
+
+			// Is valid situation when both excluded and included folders exist, e.g. in case when not all child items are encluded
+			if (includedAssetExists && excludedAssetExists && !(includedAssetIsAFolder && excludedAssetIsAFolder))
+			{
+				if (includedAssetIsAFolder != excludedAssetIsAFolder)
+				{
+					Debug.LogErrorFormat("Either included or excluded asset is a folder, while the other one is not", includedAssetPath);
+					return false;
+				}
+
+				Debug.LogErrorFormat("Both included and excluded {0} exist", includedAssetPath);
 				return false;
 			}
 
