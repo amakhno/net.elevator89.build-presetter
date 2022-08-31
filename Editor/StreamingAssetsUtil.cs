@@ -127,18 +127,10 @@ namespace Elevator89.BuildPresetter
 				? hierarchyAsset.Name
 				: accumulatedPath + "/" + hierarchyAsset.Name;
 
-			if (hierarchyAsset.Children.Count == 0)
-			{
-				SetStreamingAssetIncluded(assetRelativePath, hierarchyAsset.IsIncluded);
-			}
-			else
-			{
-				if (hierarchyAsset.IsIncluded)
-					SetStreamingAssetIncluded(assetRelativePath, true);
-				else
-					foreach (HierarchyAsset child in hierarchyAsset.Children)
-						ApplyStreamingAssetsHierarchyToCurrentSetup(child, assetRelativePath);
-			}
+			SetStreamingAssetIncluded(assetRelativePath, hierarchyAsset.IsIncluded);
+
+			foreach (HierarchyAsset child in hierarchyAsset.Children)
+				ApplyStreamingAssetsHierarchyToCurrentSetup(child, assetRelativePath);
 		}
 
 		private static HierarchyAsset BuildStreamingAssetsHierarchyWithVirtualRoot()
