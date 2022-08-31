@@ -18,10 +18,10 @@ namespace Elevator89.BuildPresetter
 			IEnumerable<string> resourcesFolders = Enumerable.Empty<string>();
 
 			if (searchIncluded)
-				resourcesFolders = resourcesFolders.Concat(FindFolders(ResourcesFolderName, BaseAssetsFolder));
+				resourcesFolders = resourcesFolders.Concat(FindFoldersPaths(ResourcesFolderName, BaseAssetsFolder));
 
 			if (searchExcluded)
-				resourcesFolders = resourcesFolders.Concat(FindFolders(ExcludedResourcesFolderName, BaseAssetsFolder).Select(ToIncludedResourcesPath));
+				resourcesFolders = resourcesFolders.Concat(FindFoldersPaths(ExcludedResourcesFolderName, BaseAssetsFolder).Select(ToIncludedResourcesPath));
 
 			return resourcesFolders;
 		}
@@ -193,25 +193,24 @@ namespace Elevator89.BuildPresetter
 
 		public static IEnumerable<string> GetAllAssetsPaths(string searchInFolder)
 		{
-			return AssetDatabase
-				.FindAssets("", new string[] { searchInFolder })
-				.Select(AssetDatabase.GUIDToAssetPath);
+			return FindAssetsPaths("", searchInFolder);
 		}
 
-		public static IEnumerable<string> FindFolders(string folderName, string searchInFolder)
+		public static IEnumerable<string> FindFoldersPaths(string folderName, string searchInFolder)
 		{
 			string filter = string.IsNullOrWhiteSpace(folderName) ? " t:folder" : $"\"{folderName}\" t:folder";
-
-			return AssetDatabase
-				.FindAssets(filter, new string[] { searchInFolder })
-				.Select(AssetDatabase.GUIDToAssetPath)
-				.Where(path => path.EndsWith($"/{folderName}"));
+			return FindAssetsPaths(filter, searchInFolder).Where(path => path.EndsWith($"/{folderName}"));
 		}
 
-		public static IEnumerable<string> FindAllScenes()
+		public static IEnumerable<string> FindAllScenesPaths()
+		{
+			return FindAssetsPaths("t:sceneAsset", BaseAssetsFolder);
+		}
+
+		private static IEnumerable<string> FindAssetsPaths(string filter, string searchInFolder)
 		{
 			return AssetDatabase
-				.FindAssets("t:sceneAsset", new string[] { BaseAssetsFolder })
+				.FindAssets(filter, new string[] { searchInFolder })
 				.Select(AssetDatabase.GUIDToAssetPath);
 		}
 

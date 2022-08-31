@@ -190,7 +190,7 @@ namespace Elevator89.BuildPresetter
 						GUILayout.Label("Scenes:");
 						_scrollPosScenes = EditorGUILayout.BeginScrollView(_scrollPosScenes, EditorStyles.helpBox);
 						{
-							string[] allSccenes = Util.FindAllScenes().ToArray();
+							string[] allSccenes = Util.FindAllScenesPaths().ToArray();
 							HashSet<string> includedScenesPaths = new HashSet<string>(preset.IncludedScenes.Where(scenePath => allSccenes.Contains(scenePath)));
 
 							foreach (string scenePath in allSccenes)
