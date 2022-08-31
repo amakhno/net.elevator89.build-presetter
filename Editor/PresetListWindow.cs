@@ -10,12 +10,16 @@ namespace Elevator89.BuildPresetter
 {
 	public class PresetListWindow : EditorWindow
 	{
+		private static readonly GUILayoutOption[] EmptyLayoutOption = new GUILayoutOption[0];
+
 		private PresetList _presets;
 
 		private Vector2 _scrollPos;
 		private Vector2 _scrollPosScenes;
 		private Vector2 _scrollPosResources;
 		private Vector2 _scrollPosStreamingAssets;
+
+		private object _splitterState = SplitterGUILayout.CreateSplitterState(new float[] { 33f, 33f, 33f }, new int[] { 50, 50, 50 }, null);
 
 		[MenuItem("Build/Build with Acive Preset", false, 100)]
 		private static void BuildWithAcivePreset()
@@ -182,76 +186,80 @@ namespace Elevator89.BuildPresetter
 
 				GUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
 				{
-					GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
+					SplitterGUILayout.BeginHorizontalSplit(_splitterState);
 					{
-						GUILayout.Label("Initial scene:");
-						preset.InitialSceneIndex = EditorGUILayout.Popup(preset.InitialSceneIndex, preset.IncludedScenes.Select(scenePath => scenePath.Replace('/', '\u2215')).ToArray());
-
-						GUILayout.Label("Scenes:");
-						_scrollPosScenes = EditorGUILayout.BeginScrollView(_scrollPosScenes, EditorStyles.helpBox);
+						GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
 						{
-							string[] allSccenes = Util.FindAllScenesPaths().ToArray();
-							HashSet<string> includedScenesPaths = new HashSet<string>(preset.IncludedScenes.Where(scenePath => allSccenes.Contains(scenePath)));
+							GUILayout.Label("Initial scene:");
+							preset.InitialSceneIndex = EditorGUILayout.Popup(preset.InitialSceneIndex, preset.IncludedScenes.Select(scenePath => scenePath.Replace('/', '\u2215')).ToArray());
 
-							foreach (string scenePath in allSccenes)
+							GUILayout.Label("Scenes:");
+							_scrollPosScenes = EditorGUILayout.BeginScrollView(_scrollPosScenes, EditorStyles.helpBox);
 							{
-								EditorGUI.BeginChangeCheck();
-								bool isSceneIncluded = EditorGUILayout.ToggleLeft(scenePath, includedScenesPaths.Contains(scenePath));
-								if (EditorGUI.EndChangeCheck())
+								string[] allSccenes = Util.FindAllScenesPaths().ToArray();
+								HashSet<string> includedScenesPaths = new HashSet<string>(preset.IncludedScenes.Where(scenePath => allSccenes.Contains(scenePath)));
+
+								foreach (string scenePath in allSccenes)
 								{
-									if (isSceneIncluded)
-										includedScenesPaths.Add(scenePath);
-									else
-										includedScenesPaths.Remove(scenePath);
+									EditorGUI.BeginChangeCheck();
+									bool isSceneIncluded = EditorGUILayout.ToggleLeft(scenePath, includedScenesPaths.Contains(scenePath));
+									if (EditorGUI.EndChangeCheck())
+									{
+										if (isSceneIncluded)
+											includedScenesPaths.Add(scenePath);
+										else
+											includedScenesPaths.Remove(scenePath);
+									}
 								}
+								preset.IncludedScenes = includedScenesPaths.ToList();
 							}
-							preset.IncludedScenes = includedScenesPaths.ToList();
+							EditorGUILayout.EndScrollView();
 						}
-						EditorGUILayout.EndScrollView();
-					}
-					GUILayout.EndVertical();
+						GUILayout.EndVertical();
 
-					GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
-					{
-						GUILayout.Label("Resources:");
-
-						_scrollPosResources = EditorGUILayout.BeginScrollView(_scrollPosResources, EditorStyles.helpBox);
+						GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
 						{
-							string[] allResourcesFolders = Util.FindResourcesFolders(searchIncluded: true, searchExcluded: true).ToArray();
-							HashSet<string> includedResourcesFolders = new HashSet<string>(preset.IncludedResources.Where(path => allResourcesFolders.Contains(path)));
+							GUILayout.Label("Resources:");
 
-							foreach (string resourcesFolder in allResourcesFolders)
+							_scrollPosResources = EditorGUILayout.BeginScrollView(_scrollPosResources, EditorStyles.helpBox);
 							{
-								EditorGUI.BeginChangeCheck();
-								bool areResourcesIncluded = EditorGUILayout.ToggleLeft(resourcesFolder, includedResourcesFolders.Contains(resourcesFolder));
-								if (EditorGUI.EndChangeCheck())
+								string[] allResourcesFolders = Util.FindResourcesFolders(searchIncluded: true, searchExcluded: true).ToArray();
+								HashSet<string> includedResourcesFolders = new HashSet<string>(preset.IncludedResources.Where(path => allResourcesFolders.Contains(path)));
+
+								foreach (string resourcesFolder in allResourcesFolders)
 								{
-									if (areResourcesIncluded)
-										includedResourcesFolders.Add(resourcesFolder);
-									else
-										includedResourcesFolders.Remove(resourcesFolder);
+									EditorGUI.BeginChangeCheck();
+									bool areResourcesIncluded = EditorGUILayout.ToggleLeft(resourcesFolder, includedResourcesFolders.Contains(resourcesFolder));
+									if (EditorGUI.EndChangeCheck())
+									{
+										if (areResourcesIncluded)
+											includedResourcesFolders.Add(resourcesFolder);
+										else
+											includedResourcesFolders.Remove(resourcesFolder);
+									}
 								}
+								preset.IncludedResources = includedResourcesFolders.ToList();
 							}
-							preset.IncludedResources = includedResourcesFolders.ToList();
+							EditorGUILayout.EndScrollView();
 						}
-						EditorGUILayout.EndScrollView();
-					}
-					GUILayout.EndVertical();
+						GUILayout.EndVertical();
 
-					GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
-					{
-						GUILayout.Label("Streaming assets:");
-
-						// ToDo: Consider using TreeView: https://docs.unity3d.com/Manual/TreeViewAPI.html
-						_scrollPosStreamingAssets = EditorGUILayout.BeginScrollView(_scrollPosStreamingAssets, EditorStyles.helpBox, GUILayout.ExpandWidth(true));
+						GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
 						{
-							HierarchyAsset streamingAssetsHierarchy = StreamingAssetsUtil.GetStreamingAssetsHierarchyByLists(preset.IncludedStreamingAssets);
-							ShowStreamingAssetsFoldersAndFiles(0, parentIsIncluded: false, streamingAssetsHierarchy);
-							preset.IncludedStreamingAssets = StreamingAssetsUtil.GetAssetsListsByHierarchy(streamingAssetsHierarchy);
+							GUILayout.Label("Streaming assets:");
+
+							// ToDo: Consider using TreeView: https://docs.unity3d.com/Manual/TreeViewAPI.html
+							_scrollPosStreamingAssets = EditorGUILayout.BeginScrollView(_scrollPosStreamingAssets, EditorStyles.helpBox, GUILayout.ExpandWidth(true));
+							{
+								HierarchyAsset streamingAssetsHierarchy = StreamingAssetsUtil.GetStreamingAssetsHierarchyByLists(preset.IncludedStreamingAssets);
+								ShowStreamingAssetsFoldersAndFiles(0, parentIsIncluded: false, streamingAssetsHierarchy);
+								preset.IncludedStreamingAssets = StreamingAssetsUtil.GetAssetsListsByHierarchy(streamingAssetsHierarchy);
+							}
+							EditorGUILayout.EndScrollView();
 						}
-						EditorGUILayout.EndScrollView();
+						GUILayout.EndVertical();
 					}
-					GUILayout.EndVertical();
+					SplitterGUILayout.EndHorizontalSplit();
 				}
 				GUILayout.EndHorizontal();
 
