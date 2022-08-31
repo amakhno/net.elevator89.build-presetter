@@ -24,6 +24,8 @@ namespace Elevator89.BuildPresetter
 
 		public static void FillFromCurrent(Preset preset)
 		{
+			AssetDatabase.Refresh();
+
 			BuildTarget buildTarget = EditorUserBuildSettings.activeBuildTarget;
 			BuildTargetGroup buildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
 
@@ -61,6 +63,8 @@ namespace Elevator89.BuildPresetter
 
 		public static void SetCurrent(Preset preset)
 		{
+			AssetDatabase.Refresh();
+
 			PlayerSettings.productName = preset.AppName;
 			Texture2D icon = AssetDatabase.LoadAssetAtPath<Texture2D>(preset.AppIconPath);
 			PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Standalone,
