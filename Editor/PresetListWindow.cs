@@ -191,17 +191,21 @@ namespace Elevator89.BuildPresetter
 						_scrollPosScenes = EditorGUILayout.BeginScrollView(_scrollPosScenes, EditorStyles.helpBox);
 						{
 							string[] allSccenes = Util.FindAllScenes().ToArray();
-							HashSet<string> enabledSceneAssetPaths = new HashSet<string>(preset.IncludedScenes.Where(scenePath => allSccenes.Contains(scenePath)));
+							HashSet<string> includedScenesPaths = new HashSet<string>(preset.IncludedScenes.Where(scenePath => allSccenes.Contains(scenePath)));
 
 							foreach (string scenePath in allSccenes)
 							{
-								if (EditorGUILayout.ToggleLeft(scenePath, enabledSceneAssetPaths.Contains(scenePath)))
-									enabledSceneAssetPaths.Add(scenePath);
-								else
-									enabledSceneAssetPaths.Remove(scenePath);
+								EditorGUI.BeginChangeCheck();
+								bool isSceneIncluded = EditorGUILayout.ToggleLeft(scenePath, includedScenesPaths.Contains(scenePath));
+								if (EditorGUI.EndChangeCheck())
+								{
+									if (isSceneIncluded)
+										includedScenesPaths.Add(scenePath);
+									else
+										includedScenesPaths.Remove(scenePath);
+								}
 							}
-
-							preset.IncludedScenes = enabledSceneAssetPaths.ToList();
+							preset.IncludedScenes = includedScenesPaths.ToList();
 						}
 						EditorGUILayout.EndScrollView();
 					}
@@ -214,16 +218,21 @@ namespace Elevator89.BuildPresetter
 						_scrollPosResources = EditorGUILayout.BeginScrollView(_scrollPosResources, EditorStyles.helpBox);
 						{
 							string[] allResourcesFolders = Util.FindResourcesFolders(searchIncluded: true, searchExcluded: true).ToArray();
-							HashSet<string> enabledResourcesFolders = new HashSet<string>(preset.IncludedResources.Where(path => allResourcesFolders.Contains(path)));
+							HashSet<string> includedResourcesFolders = new HashSet<string>(preset.IncludedResources.Where(path => allResourcesFolders.Contains(path)));
 
 							foreach (string resourcesFolder in allResourcesFolders)
 							{
-								if (EditorGUILayout.ToggleLeft(resourcesFolder, enabledResourcesFolders.Contains(resourcesFolder)))
-									enabledResourcesFolders.Add(resourcesFolder);
-								else
-									enabledResourcesFolders.Remove(resourcesFolder);
+								EditorGUI.BeginChangeCheck();
+								bool areResourcesIncluded = EditorGUILayout.ToggleLeft(resourcesFolder, includedResourcesFolders.Contains(resourcesFolder));
+								if (EditorGUI.EndChangeCheck())
+								{
+									if (areResourcesIncluded)
+										includedResourcesFolders.Add(resourcesFolder);
+									else
+										includedResourcesFolders.Remove(resourcesFolder);
+								}
 							}
-							preset.IncludedResources = enabledResourcesFolders.ToList();
+							preset.IncludedResources = includedResourcesFolders.ToList();
 						}
 						EditorGUILayout.EndScrollView();
 					}
@@ -314,7 +323,13 @@ namespace Elevator89.BuildPresetter
 			style.contentOffset = new Vector2(nestingLevel * 20f, 0f);
 
 			GUI.enabled = !parentIsIncluded;
-			hierarchyAsset.IsIncluded = EditorGUILayout.ToggleLeft(hierarchyAsset.Name, hierarchyAsset.IsIncluded, style);
+			EditorGUI.BeginChangeCheck();
+
+			bool isIncluded = EditorGUILayout.ToggleLeft(hierarchyAsset.Name, hierarchyAsset.IsIncluded, style);
+
+			if (EditorGUI.EndChangeCheck())
+				hierarchyAsset.IsIncluded = isIncluded;
+
 			GUI.enabled = true;
 
 			if (hierarchyAsset.Children.Count > 0)
