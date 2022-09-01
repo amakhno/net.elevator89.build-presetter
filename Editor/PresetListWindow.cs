@@ -122,16 +122,6 @@ namespace Elevator89.BuildPresetter
 							ConnectWithProfiler = preset.ConnectWithProfiler,
 							DefineSymbols = preset.DefineSymbols,
 							DevelopmentBuild = preset.DevelopmentBuild,
-							ServerBuild = preset.ServerBuild,
-							AndroidOptions = new AndroidOptions()
-							{
-								MinAndriodSdkVersion = preset.AndroidOptions.MinAndriodSdkVersion,
-								AndroidBuildSystem = preset.AndroidOptions.AndroidBuildSystem,
-								KeystoreFilePath = preset.AndroidOptions.KeystoreFilePath,
-								KeystorePassword = preset.AndroidOptions.KeystorePassword,
-								KeyaliasName = preset.AndroidOptions.KeyaliasName,
-								KeyaliasPassword = preset.AndroidOptions.KeyaliasPassword
-							},
 							IncludedResources = new List<string>(preset.IncludedResources),
 							IncludedStreamingAssets = new AssetsLists()
 							{
@@ -269,26 +259,12 @@ namespace Elevator89.BuildPresetter
 				preset.BuildTarget = (BuildTarget)EditorGUILayout.EnumPopup("Target", preset.BuildTarget);
 				preset.ScriptingImplementation = (ScriptingImplementation)EditorGUILayout.EnumPopup("ScriptingImplementation", preset.ScriptingImplementation);
 
-				GUI.enabled = preset.BuildTargetGroup == BuildTargetGroup.Android;
-				EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-				{
-					preset.AndroidOptions.MinAndriodSdkVersion = (AndroidSdkVersions)EditorGUILayout.EnumPopup("Min Andriod SDK version", preset.AndroidOptions.MinAndriodSdkVersion);
-					preset.AndroidOptions.AndroidBuildSystem = (AndroidBuildSystem)EditorGUILayout.EnumPopup("Build System", preset.AndroidOptions.AndroidBuildSystem);
-					preset.AndroidOptions.KeystoreFilePath = EditorGUILayout.TextField("Keystore File Path", preset.AndroidOptions.KeystoreFilePath);
-					preset.AndroidOptions.KeystorePassword = EditorGUILayout.TextField("Keystore Password", preset.AndroidOptions.KeystorePassword);
-					preset.AndroidOptions.KeyaliasName = EditorGUILayout.TextField("Keyalias Name", preset.AndroidOptions.KeyaliasName);
-					preset.AndroidOptions.KeyaliasPassword = EditorGUILayout.TextField("Keyalias Password", preset.AndroidOptions.KeyaliasPassword);
-				}
-				EditorGUILayout.EndVertical();
-				GUI.enabled = true;
-
 				preset.BuildDirectory = EditorGUILayout.TextField("Build directory", preset.BuildDirectory);
 				preset.BuildFileName = EditorGUILayout.TextField("Build file name", preset.BuildFileName);
 				preset.DefineSymbols = EditorGUILayout.TextField("Define symbols", preset.DefineSymbols);
 
 				preset.IncrementalIl2CppBuild = EditorGUILayout.Toggle("Incremental IL2CPP Build", preset.IncrementalIl2CppBuild);
 				preset.DevelopmentBuild = EditorGUILayout.Toggle("Development Build", preset.DevelopmentBuild);
-				preset.ServerBuild = EditorGUILayout.Toggle("Server Build", preset.ServerBuild);
 				preset.ConnectWithProfiler = EditorGUILayout.Toggle("Connect Profiler", preset.ConnectWithProfiler);
 
 				preset.UseIncrementalGC = EditorGUILayout.Toggle("Use incremental GC", preset.UseIncrementalGC);

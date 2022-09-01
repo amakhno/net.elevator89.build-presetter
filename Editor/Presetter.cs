@@ -45,18 +45,7 @@ namespace Elevator89.BuildPresetter
 			HierarchyAsset streamingAssetsHierarchy = StreamingAssetsUtil.GetStreamingAssetsHierarchyByCurrentSetup();
 			preset.IncludedStreamingAssets = StreamingAssetsUtil.GetAssetsListsByHierarchy(streamingAssetsHierarchy);
 
-			preset.AndroidOptions = new AndroidOptions()
-			{
-				MinAndriodSdkVersion = PlayerSettings.Android.minSdkVersion,
-				KeystoreFilePath = PlayerSettings.Android.keystoreName,
-				KeystorePassword = PlayerSettings.Android.keystorePass,
-				KeyaliasName = PlayerSettings.Android.keyaliasName,
-				KeyaliasPassword = PlayerSettings.Android.keyaliasPass,
-				AndroidBuildSystem = EditorUserBuildSettings.androidBuildSystem
-			};
-
 			preset.DevelopmentBuild = EditorUserBuildSettings.development;
-			preset.ServerBuild = EditorUserBuildSettings.enableHeadlessMode;
 			preset.ConnectWithProfiler = EditorUserBuildSettings.connectProfiler;
 			preset.UseIncrementalGC = PlayerSettings.gcIncremental;
 		}
@@ -91,15 +80,7 @@ namespace Elevator89.BuildPresetter
 
 			AssetDatabase.Refresh();
 
-			PlayerSettings.Android.minSdkVersion = preset.AndroidOptions.MinAndriodSdkVersion;
-			PlayerSettings.Android.keystoreName = preset.AndroidOptions.KeystoreFilePath;
-			PlayerSettings.Android.keystorePass = preset.AndroidOptions.KeystorePassword;
-			PlayerSettings.Android.keyaliasName = preset.AndroidOptions.KeyaliasName;
-			PlayerSettings.Android.keyaliasPass = preset.AndroidOptions.KeyaliasPassword;
-			EditorUserBuildSettings.androidBuildSystem = preset.AndroidOptions.AndroidBuildSystem;
-
 			EditorUserBuildSettings.development = preset.DevelopmentBuild;
-			EditorUserBuildSettings.enableHeadlessMode = preset.ServerBuild;
 
 			PlayerSettings.gcIncremental = preset.UseIncrementalGC;
 		}

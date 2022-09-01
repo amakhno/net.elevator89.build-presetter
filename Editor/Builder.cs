@@ -102,8 +102,6 @@ namespace Elevator89.BuildPresetter
 			BuildOptions buildOptions = BuildOptions.None;
 			if (preset.DevelopmentBuild)
 				buildOptions = buildOptions | BuildOptions.Development;
-			if (preset.ServerBuild)
-				buildOptions = buildOptions | BuildOptions.EnableHeadlessMode;
 			if (preset.ConnectWithProfiler)
 				buildOptions = buildOptions | BuildOptions.ConnectWithProfiler;
 			if (run)

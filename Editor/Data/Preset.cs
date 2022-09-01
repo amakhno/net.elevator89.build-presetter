@@ -45,9 +45,6 @@ namespace Elevator89.BuildPresetter.Data
 		public AssetsLists IncludedStreamingAssets;
 
 		[SerializeField]
-		public AndroidOptions AndroidOptions;
-
-		[SerializeField]
 		public string BuildDirectory;
 
 		[SerializeField]
@@ -58,9 +55,6 @@ namespace Elevator89.BuildPresetter.Data
 
 		[SerializeField]
 		public bool DevelopmentBuild;
-
-		[SerializeField]
-		public bool ServerBuild;
 
 		[SerializeField]
 		public bool ConnectWithProfiler;
