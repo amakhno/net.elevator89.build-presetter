@@ -30,7 +30,7 @@ namespace Elevator89.BuildPresetter.FolderHierarchy
 
 			while (true)
 			{
-				int lastSlashIndex = assetPath.LastIndexOf("/", StringComparison.InvariantCultureIgnoreCase);
+				int lastSlashIndex = assetPath.LastIndexOf('/');
 
 				List<HierarchyAsset> children = new List<HierarchyAsset>();
 				if (asset != null)

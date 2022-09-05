@@ -25,7 +25,7 @@ namespace Elevator89.BuildPresetter
 		{
 			string assetPath = string.IsNullOrEmpty(accumulatedPath)
 				? hierarchyAsset.Name
-				: accumulatedPath + "/" + hierarchyAsset.Name;
+				: Util.CombinePath(accumulatedPath, hierarchyAsset.Name);
 
 			if (hierarchyAsset.Children.Count == 0)
 			{
@@ -56,7 +56,7 @@ namespace Elevator89.BuildPresetter
 		{
 			string assetPath = string.IsNullOrEmpty(accumulatedPath)
 				? hierarchyAsset.Name
-				: accumulatedPath + "/" + hierarchyAsset.Name;
+				: Util.CombinePath(accumulatedPath, hierarchyAsset.Name);
 
 			if (hierarchyAsset.Children.Count == 0)
 				hierarchyAsset.IsIncluded = lists.Files.Contains(assetPath);
@@ -95,7 +95,7 @@ namespace Elevator89.BuildPresetter
 		{
 			string assetPath = string.IsNullOrEmpty(accumulatedPath)
 				? hierarchyAsset.Name
-				: accumulatedPath + "/" + hierarchyAsset.Name;
+				: Util.CombinePath(accumulatedPath, hierarchyAsset.Name);
 
 			if (hierarchyAsset.Children.Count == 0)
 			{
@@ -125,7 +125,7 @@ namespace Elevator89.BuildPresetter
 		{
 			string assetRelativePath = string.IsNullOrEmpty(accumulatedPath)
 				? hierarchyAsset.Name
-				: accumulatedPath + "/" + hierarchyAsset.Name;
+				: Util.CombinePath(accumulatedPath, hierarchyAsset.Name);
 
 			SetStreamingAssetIncluded(assetRelativePath, hierarchyAsset.IsIncluded);
 
@@ -137,7 +137,7 @@ namespace Elevator89.BuildPresetter
 		{
 			return Hierarchy.BuildFrom(
 				GetStreamingAssets(searchIncluded: true, searchExcluded: true)
-				.Select(relativePath => "StreamingAssets/" + relativePath)); // Use virtual root folder to unite all streaming assets
+				.Select(relativePath => Util.CombinePath("StreamingAssets", relativePath))); // Use virtual root folder to unite all streaming assets
 		}
 
 		public static IEnumerable<string> GetStreamingAssets(bool searchIncluded, bool searchExcluded)
@@ -156,16 +156,16 @@ namespace Elevator89.BuildPresetter
 		public static bool SetStreamingAssetIncluded(string streamingAssetRelativePath, bool include)
 		{
 			return Util.SetAssetIncluded(
-				StreamingAssetsFolder + "/" + streamingAssetRelativePath,
-				ExcludedStreamingAssetsFolder + "/" + streamingAssetRelativePath,
+				Util.CombinePath(StreamingAssetsFolder, streamingAssetRelativePath),
+				Util.CombinePath(ExcludedStreamingAssetsFolder, streamingAssetRelativePath),
 				include);
 		}
 
 		public static bool IsStreamingAssetIncluded(string streamingAssetRelativePath)
 		{
 			return Util.IsAssetIncluded(
-				StreamingAssetsFolder + "/" + streamingAssetRelativePath,
-				ExcludedStreamingAssetsFolder + "/" + streamingAssetRelativePath);
+				Util.CombinePath(StreamingAssetsFolder, streamingAssetRelativePath),
+				Util.CombinePath(ExcludedStreamingAssetsFolder, streamingAssetRelativePath));
 		}
 	}
 }

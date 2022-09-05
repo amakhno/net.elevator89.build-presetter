@@ -135,13 +135,13 @@ namespace Elevator89.BuildPresetter
 
 			while (true)
 			{
-				int firstSlashIndex = assetPathTail.IndexOf("/", StringComparison.InvariantCultureIgnoreCase);
+				int firstSlashIndex = assetPathTail.IndexOf('/');
 
 				if (firstSlashIndex == -1)
 					return;
 
 				string nextFolderName = assetPathTail.Substring(0, firstSlashIndex);
-				string nextFolderPath = currentFolderPath.Length > 0 ? currentFolderPath + "/" + nextFolderName : nextFolderName;
+				string nextFolderPath = CombinePath(currentFolderPath, nextFolderName);
 
 				assetPathTail = assetPathTail.Substring(firstSlashIndex + 1, assetPathTail.Length - firstSlashIndex - 1);
 
@@ -161,7 +161,7 @@ namespace Elevator89.BuildPresetter
 
 			while (true)
 			{
-				int lastSlashIndex = folderPath.LastIndexOf("/", StringComparison.InvariantCultureIgnoreCase);
+				int lastSlashIndex = folderPath.LastIndexOf('/');
 
 				if (lastSlashIndex == -1)
 					return;
@@ -205,6 +205,20 @@ namespace Elevator89.BuildPresetter
 		public static IEnumerable<string> FindAllScenesPaths()
 		{
 			return FindAssetsPaths("t:sceneAsset", BaseAssetsFolder);
+		}
+
+		public static string CombinePath(string part1, string part2)
+		{
+			if (part2.Length == 0)
+				return part1;
+
+			if (part1.Length == 0)
+				return part2;
+
+			if (part1[part1.Length - 1] == '/')
+				return part1 + part2;
+
+			return part1 + '/' + part2;
 		}
 
 		private static IEnumerable<string> FindAssetsPaths(string filter, string searchInFolder)
