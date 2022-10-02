@@ -7,6 +7,11 @@ using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 using Elevator89.BuildPresetter.Data;
+using UnityEditor.TestTools.TestRunner.Api;
+using System.Threading;
+using System.Xml;
+using NUnit.Framework.Internal;
+using NUnit.Framework.Interfaces;
 
 namespace Elevator89.BuildPresetter
 {
@@ -35,8 +40,11 @@ namespace Elevator89.BuildPresetter
 			string buildPresetName = GetNamedArgument(args, "-buildPresetName");
 			string buildDirectory = GetNamedArgument(args, "-buildDirectory");
 			string version = GetNamedArgument(args, "-appVersion");
+			// The name is different no to interfere with the unity cli
+			bool runTests = args.Contains("-runCustomEditorTests");
 
-			PresetList presets = PresetList.Load();
+
+            PresetList presets = PresetList.Load();
 			Preset preset = presets.GetPreset(buildPresetName);
 
 			if (preset == null)
@@ -49,10 +57,10 @@ namespace Elevator89.BuildPresetter
 				preset.BuildDirectory = buildDirectory;
 			}
 
-			Build(preset, false, version);
+			Build(preset, false, version, runTests);
 		}
 
-		public static void Build(Preset preset, bool run, string version)
+		public static void Build(Preset preset, bool run, string version, bool runTests = false)
 		{
 			if (preset.BuildDirectory == null)
 			{
@@ -70,12 +78,41 @@ namespace Elevator89.BuildPresetter
 
 			try
 			{
+				if (runTests)
+					RunTests("Assembly-CSharp-Editor");
 				BuildInternal(preset, run);
 			}
 			finally
 			{
 				Presetter.SetCurrent(previousPreset);
 			}
+		}
+
+		/// <summary>
+		/// The original cycle can be viewed at TestStarter class of the com.unity.test-framework<br/>
+		/// TODO: Create the root project asmdef to filter test projects in a better way
+		/// </summary>
+		/// <param name="assemblyName">The assemblyName is used to avoid running tests from the packages</param>
+		private static void RunTests(string assemblyName)
+		{
+			TestRunnerApi testRunnerApi = ScriptableObject.CreateInstance<TestRunnerApi>();
+			var settings = new ExecutionSettings(new Filter { testMode = TestMode.EditMode, assemblyNames = new[] { assemblyName } });
+			testRunnerApi.RegisterCallbacks(new TestCallback());
+			_ = testRunnerApi.Execute(settings);
+		}
+
+		private class TestCallback : ICallbacks
+		{
+			void ICallbacks.RunFinished(ITestResultAdaptor result)
+			{
+				TestRunnerApi.SaveResultToFile(result, "test-results.xml");
+				if (result.FailCount > 0)
+					throw new Exception("Tests have failed");
+			}
+
+			void ICallbacks.RunStarted(ITestAdaptor testsToRun) { }
+			void ICallbacks.TestFinished(ITestResultAdaptor result) { }
+			void ICallbacks.TestStarted(ITestAdaptor test) { }
 		}
 
 		private static string GetNamedArgument(string[] args, string name)
