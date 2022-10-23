@@ -7,11 +7,6 @@ using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 using Elevator89.BuildPresetter.Data;
-using UnityEditor.TestTools.TestRunner.Api;
-using System.Threading;
-using System.Xml;
-using NUnit.Framework.Internal;
-using NUnit.Framework.Interfaces;
 
 namespace Elevator89.BuildPresetter
 {
