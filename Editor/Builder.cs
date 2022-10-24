@@ -35,6 +35,8 @@ namespace Elevator89.BuildPresetter
 			string buildPresetName = GetNamedArgument(args, "-buildPresetName");
 			string buildDirectory = GetNamedArgument(args, "-buildDirectory");
 			string version = GetNamedArgument(args, "-appVersion");
+			bool runTests = args.Contains("-runEditorTests");
+
 
 			PresetList presets = PresetList.Load();
 			Preset preset = presets.GetPreset(buildPresetName);
@@ -49,10 +51,14 @@ namespace Elevator89.BuildPresetter
 				preset.BuildDirectory = buildDirectory;
 			}
 
-			Build(preset, false, version);
+			// Don't exit if the test run is required
+			Build(preset, false, version, rollbackPreset: false);
+			if (!runTests)
+				// Tests run closes the application automatically
+				EditorApplication.Exit(0);
 		}
 
-		public static void Build(Preset preset, bool run, string version)
+		public static void Build(Preset preset, bool run, string version, bool rollbackPresetChange = true)
 		{
 			if (preset.BuildDirectory == null)
 			{
@@ -74,7 +80,8 @@ namespace Elevator89.BuildPresetter
 			}
 			finally
 			{
-				Presetter.SetCurrent(previousPreset);
+				if (rollbackPresetChange)
+					Presetter.SetCurrent(previousPreset);
 			}
 		}
 
