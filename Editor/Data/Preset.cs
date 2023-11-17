@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEngine;
 
 namespace Elevator89.BuildPresetter.Data
@@ -61,6 +62,12 @@ namespace Elevator89.BuildPresetter.Data
 
 		[SerializeField]
 		public bool UseIncrementalGC;
+
+		[SerializeField]
+		public Il2CppCompilerConfiguration Il2CppCompilerConfiguration;
+
+		[SerializeField]
+		public Il2CppCodeGeneration Il2CppCodeGeneration;
 	}
 }
 
