@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEngine;
 using Elevator89.BuildPresetter.Data;
 using Elevator89.BuildPresetter.FolderHierarchy;
+using UnityEditor.Build;
 
 namespace Elevator89.BuildPresetter
 {
@@ -268,6 +269,8 @@ namespace Elevator89.BuildPresetter
 				preset.ConnectWithProfiler = EditorGUILayout.Toggle("Connect Profiler", preset.ConnectWithProfiler);
 
 				preset.UseIncrementalGC = EditorGUILayout.Toggle("Use incremental GC", preset.UseIncrementalGC);
+				preset.Il2CppCodeGeneration = (Il2CppCodeGeneration)EditorGUILayout.EnumPopup("Il2CppCodeGeneration", preset.Il2CppCodeGeneration);
+				preset.Il2CppCompilerConfiguration = (Il2CppCompilerConfiguration)EditorGUILayout.EnumPopup("Il2CppCompilerConfiguration", preset.Il2CppCompilerConfiguration);
 
 				GUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
 				{
