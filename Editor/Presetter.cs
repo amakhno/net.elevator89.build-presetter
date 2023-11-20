@@ -66,7 +66,7 @@ namespace Elevator89.BuildPresetter
 			PlayerSettings.SetScriptingBackend(preset.BuildTargetGroup, preset.ScriptingImplementation);
 			PlayerSettings.SetIncrementalIl2CppBuild(preset.BuildTargetGroup, preset.IncrementalIl2CppBuild);
 			PlayerSettings.SetIl2CppCompilerConfiguration(preset.BuildTargetGroup, preset.Il2CppCompilerConfiguration);
-			var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(preset.BuildTargetGroup);
+			NamedBuildTarget namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(preset.BuildTargetGroup);
 			PlayerSettings.SetIl2CppCodeGeneration(namedBuildTarget, preset.Il2CppCodeGeneration);
 
 			PlayerSettings.SetScriptingDefineSymbolsForGroup(preset.BuildTargetGroup, preset.DefineSymbols);
