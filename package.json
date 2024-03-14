@@ -1,6 +1,6 @@
 {
   "name": "net.elevator89.build-presetter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "displayName": "Build Presetter",
   "description": "Allows to create multiple and flexible build presets for multiple platforms and environments, and use it in your CI pipeline",
   "unity": "2021.1",
