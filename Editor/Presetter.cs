@@ -38,7 +38,7 @@ namespace Elevator89.BuildPresetter
 			preset.ScriptingImplementation = PlayerSettings.GetScriptingBackend(buildTargetGroup);
 			preset.IncrementalIl2CppBuild = PlayerSettings.GetIncrementalIl2CppBuild(buildTargetGroup);
 			preset.Il2CppCompilerConfiguration = PlayerSettings.GetIl2CppCompilerConfiguration(namedBuildTarget);
-			preset.Il2CppCodeGeneration = EditorUserBuildSettings.il2CppCodeGeneration;
+			preset.Il2CppCodeGeneration = PlayerSettings.GetIl2CppCodeGeneration(namedBuildTarget);
 			preset.DefineSymbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
 			preset.IncludedScenes = EditorBuildSettings.scenes.Select(scene => scene.path).ToList();
 			preset.InitialSceneIndex = 0;
@@ -67,7 +67,7 @@ namespace Elevator89.BuildPresetter
 			PlayerSettings.SetIncrementalIl2CppBuild(preset.BuildTargetGroup, preset.IncrementalIl2CppBuild);
 			PlayerSettings.SetIl2CppCompilerConfiguration(preset.BuildTargetGroup, preset.Il2CppCompilerConfiguration);
 			NamedBuildTarget namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(preset.BuildTargetGroup);
-			EditorUserBuildSettings.il2CppCodeGeneration = preset.Il2CppCodeGeneration;
+			PlayerSettings.SetIl2CppCodeGeneration(namedBuildTarget, preset.Il2CppCodeGeneration);
 
 			PlayerSettings.SetScriptingDefineSymbolsForGroup(preset.BuildTargetGroup, preset.DefineSymbols);
 
